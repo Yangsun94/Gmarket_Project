@@ -57,24 +57,26 @@ jobs:
     - name: 테스트 실행 (All)
       if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == ''
       run: |
-        pytest tests/integration/ -v --html=report.html --self-contained-html
+        pytest tests/integration/ -v -m "not login" --html=report.html --self-contained-html
 
     - name: 테스트 실행 (Integration)
       if: github.event.inputs.test_type == 'integration'
       run: |
-        pytest tests/integration/test_integration.py -v --html=report.html --self-contained-html
+        pytest tests/integration/test_integration.py -v -m "not login" --html=report.html --self-contained-html
 
     - name: 테스트 실행 (Unit)
       if: github.event.inputs.test_type == 'unit'
       run: |
-        echo "단위 테스트는 로컬에서만 실행 가능합니다 (G마켓 봇 차단)"
+        echo "⚠️ 단위 테스트는 로컬에서만 실행 가능합니다 (G마켓 봇 차단)"
         echo "로컬 실행: pytest tests/unit/ -v"
         exit 0
 
     - name: 테스트 실행 (Login)
       if: github.event.inputs.test_type == 'login'
       run: |
-        pytest tests/ -m login -v --html=report.html --self-contained-html
+        echo "⚠️ 로그인 테스트는 로컬에서만 실행 가능합니다 (G마켓 봇 차단)"
+        echo "로컬 실행: pytest tests/ -m login -v"
+        exit 0
 
     - name: 테스트 리포트 업로드
       if: always()
@@ -96,7 +98,7 @@ jobs:
         secure: true
         username: ${{ secrets.NAVER_EMAIL }}
         password: ${{ secrets.NAVER_PASSWORD }}
-        subject:  G마켓 자동화 테스트 실패 - ${{ github.ref_name }}
+        subject: 🚨 G마켓 자동화 테스트 실패 - ${{ github.ref_name }}
         to: ${{ secrets.NAVER_EMAIL }}
         from: ${{ secrets.NAVER_EMAIL }}
         body: |
