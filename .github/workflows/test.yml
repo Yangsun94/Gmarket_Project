@@ -57,7 +57,7 @@ jobs:
     - name: 테스트 실행 (All)
       if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == ''
       run: |
-        pytest tests/ -n auto -v --html=report.html --self-contained-html
+        pytest tests/ -v --html=report.html --self-contained-html
 
     - name: 테스트 실행 (Integration)
       if: github.event.inputs.test_type == 'integration'
