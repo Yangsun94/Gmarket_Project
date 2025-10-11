@@ -43,7 +43,7 @@ Playwright와 Pytest를 활용한 G마켓 E-commerce 웹 자동화 테스트 프
 gmarket-automation/
 ├── .github/
 │   └── workflows/
-│       └── test.yml              # GitHub Actions workflow
+│       └── quality-check.yml             # GitHub Actions workflow
 ├── framework/
 │   ├── base/
 │   │   └── base_page.py          # 모든 페이지의 베이스 클래스
@@ -101,15 +101,22 @@ playwright install chromium
 
 ### 4. 환경 변수 설정
 
-`.env` 파일을 생성하고 다음 내용을 입력:
+`.env` 파일을 생성하고 **본인의 실제 계정 정보**를 입력:
 
 ```env
-TEST_ID=your_gmarket_id
-TEST_PASSWORD=your_gmarket_password
+TEST_ID=본인의_G마켓_ID
+TEST_PASSWORD=본인의_G마켓_비밀번호
+```
+
+> ⚠️ **주의**: `.env` 파일은 `.gitignore`에 포함되어 GitHub에 업로드되지 않습니다.
+
+**선택사항**: 헤드리스 모드로 실행하려면 추가:
+
+```env
 HEADLESS=true
 ```
 
-## 💻 사용 방법
+> 💡 **헤드리스 모드**: 브라우저 창 없이 백그라운드에서 테스트 실행 (빠르고 리소스 절약)
 
 ### 전체 테스트 실행
 
@@ -136,53 +143,75 @@ pytest tests/ -m login -v
 pytest tests/ -v --html=report.html --self-contained-html
 ```
 
-### 헤드리스 모드
+### 헤드리스 모드 (선택사항)
+
+브라우저 창 없이 백그라운드에서 실행:
 
 ```bash
-# .env 파일에서 HEADLESS=true로 설정하거나
+# 방법 1: .env 파일에 추가
+HEADLESS=true
+
+# 방법 2: 환경 변수로 직접 실행
 HEADLESS=true pytest tests/ -v
 ```
 
 ## 🔄 CI/CD
 
-GitHub Actions를 통한 자동화 테스트가 구성되어 있습니다.
+### ⚠️ E2E 테스트 자동화 시도 및 전환
+
+**초기 목표:** Playwright를 활용한 E2E 테스트 자동화
+
+**발견된 문제:** G마켓의 봇 탐지 시스템
+- GitHub Actions 서버 IP 차단
+- 헤드리스 모드 감지
+- 로그인 및 대부분의 상호작용 차단
+
+**해결 방법:** 코드 품질 자동 검사로 전환
+
+GitHub Actions를 통한 **코드 품질 자동 검사**가 구성되어 있습니다.
 
 ### 자동 실행 조건
 
-- **Push**: `main`, `develop` 브랜치에 코드 푸시
-- **Pull Request**: `main`, `develop` 브랜치로 PR 생성
-- **Schedule**: 매일 오전 9시(KST) 자동 실행
-- **Manual**: GitHub Actions 탭에서 수동 실행
+- **Push**: `main`, `develop` 브랜치에 코드 푸시 시
+- **Pull Request**: `main`, `develop` 브랜치로 PR 생성 시
+- **Manual**: GitHub Actions 탭에서 수동 실행 가능
 
-### 수동 실행 방법
+### 검사 항목
 
-1. GitHub 저장소 → **Actions** 탭
-2. **Gmarket Automation Tests** 선택
-3. **Run workflow** 클릭
-4. 테스트 타입 선택:
-   - `all`: 모든 테스트
-   - `integration`: 통합 테스트
-   - `unit`: 단위 테스트
-   - `login`: 로그인 테스트
+#### **코드 품질 검사**
+- **Flake8**: PEP 8 스타일 가이드 준수 확인
+- **Black**: 코드 포맷팅 일관성 검사
+- **Pylint**: 상세한 코드 품질 분석
+- **isort**: Import 문 정렬 확인
 
-### GitHub Secrets 설정
+#### **보안 검사**
+- **Safety**: 알려진 보안 취약점 검사
 
-CI/CD가 작동하려면 다음 Secrets를 설정해야 합니다:
+### 로컬 테스트 실행
 
-**Settings → Secrets and variables → Actions → New repository secret**
+E2E 테스트는 로컬 환경에서만 실행 가능합니다:
 
-| Secret           | 설명 |
-|------------------|------|
-| `TEST_ID`        | G마켓 테스트 계정 이메일 |
-| `TEST_PASSWORD`  | G마켓 테스트 계정 비밀번호 |
-| `NAVER_EMAIL`    | 알림 받을 네이버 이메일 |
-| `NAVER_PASSWORD` | 네이버 앱 비밀번호 ([발급 방법](https://nid.naver.com/user2/help/myInfoApp.nhn?lang=ko_KR)) |
+```bash
+# 전체 테스트
+pytest tests/ -v
 
-### 테스트 리포트 확인
+# 통합 테스트
+pytest tests/integration/ -v
 
-1. Actions 탭 → 실행된 workflow 클릭
-2. **Artifacts** 섹션에서 `test-report-python-X.XX` 다운로드
-3. `report.html` 파일을 브라우저로 열기
+# 단위 테스트
+pytest tests/unit/ -v
+
+# 로그인 테스트
+pytest tests/ -m login -v
+```
+
+### 학습 내용
+
+이 프로젝트를 통해 다음을 학습했습니다:
+- ✅ Playwright E2E 테스트 자동화 구현
+- ✅ GitHub Actions CI/CD 파이프라인 구축
+- ✅ 실무 제약사항 (봇 탐지) 이해 및 대안 마련
+- ✅ 코드 품질 자동화 도구 활용
 
 ## 🏷️ 테스트 마커
 
@@ -193,6 +222,7 @@ pytest -m smoke          # 스모크 테스트
 pytest -m regression     # 회귀 테스트
 pytest -m integration    # 통합 테스트
 pytest -m login          # 로그인 테스트
+pytest -m search         # 검색 테스트
 pytest -m cart           # 장바구니 테스트
 pytest -m slow           # 느린 테스트
 ```
