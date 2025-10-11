@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+*.html
+report.html
+report-parallel.html
+
+# Playwright
+playwright-report/
+test-results/
+screenshots/
+videos/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 환경변수
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,17 @@
+# 기본 패키지들 (의존성 순서대로)
+playwright>=1.40.0
+pytest==7.4.3
+pytest-playwright==0.4.3
+pytest-html==4.1.1
+faker==19.12.0
+python-dotenv==1.0.0
+pytest-xdist==3.6.1
+
+# 고급 기능 (필요시 주석 해제)
+# pydantic>=2.0.0        # Rust 컴파일 필요
+# black>=22.0.0
+# flake8>=5.0.0
+
+# 설치 팁:
+# 1. 기본 패키지들만 먼저: pip install -r requirements.txt
+# 2. 고급 기능은 개별로: pip install allure-pytest pydantic

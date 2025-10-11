@@ -1,0 +1,110 @@
+name: Gmarket Automation Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 매일 오전 9시(KST)에 자동 실행 (UTC 0시)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    # 수동 실행 옵션
+    inputs:
+      test_type:
+        description: '실행할 테스트 타입'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - integration
+          - unit
+          - login
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
+
+    steps:
+    - name: Checkout 코드
+      uses: actions/checkout@v4
+
+    - name: Python ${{ matrix.python-version }} 설정
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: 의존성 설치
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        playwright install chromium
+        playwright install-deps
+
+    - name: 환경 변수 설정
+      run: |
+        echo "TEST_ID=${{ secrets.TEST_EMAIL }}" >> .env
+        echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> .env
+        echo "HEADLESS=true" >> .env
+
+    - name: 테스트 실행 (All)
+      if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == ''
+      run: |
+        pytest tests/ -n auto -v --html=report.html --self-contained-html
+
+    - name: 테스트 실행 (Integration)
+      if: github.event.inputs.test_type == 'integration'
+      run: |
+        pytest tests/integration/test_integration.py -v --html=report.html --self-contained-html
+
+    - name: 테스트 실행 (Unit)
+      if: github.event.inputs.test_type == 'unit'
+      run: |
+        pytest tests/unit/ -v --html=report.html --self-contained-html
+
+    - name: 테스트 실행 (Login)
+      if: github.event.inputs.test_type == 'login'
+      run: |
+        pytest tests/ -m login -v --html=report.html --self-contained-html
+
+    - name: 테스트 리포트 업로드
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report-python-${{ matrix.python-version }}
+        path: |
+          report.html
+          screenshots/
+          videos/
+        retention-days: 30
+
+    - name: 테스트 실패 알림 (Email)
+      if: failure() && github.event_name != 'pull_request'
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.naver.com
+        server_port: 465
+        secure: true
+        username: ${{ secrets.NAVER_EMAIL }}
+        password: ${{ secrets.NAVER_PASSWORD }}
+        subject: 🚨 G마켓 자동화 테스트 실패 - ${{ github.ref_name }}
+        to: ${{ secrets.NAVER_EMAIL }}
+        from: ${{ secrets.NAVER_EMAIL }}
+        body: |
+          테스트 실패 알림
+          
+          • Repository: ${{ github.repository }}
+          • Branch: ${{ github.ref_name }}
+          • Python: ${{ matrix.python-version }}
+          • Commit: ${{ github.sha }}
+          • Workflow: ${{ github.workflow }}
+          • Run Number: ${{ github.run_number }}
+          
+          자세한 내용: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
