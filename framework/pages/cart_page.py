@@ -1,12 +1,11 @@
+from playwright.sync_api import expect
+
 from framework.base.base_page import BasePage
 from framework.config.locators import CartPageLocators
-from playwright.sync_api import expect, Page
-import time
-import random
+
 
 class CartPage(BasePage):
-
-    def __init__(self,page):
+    def __init__(self, page):
         super().__init__(page)
         self.url_path = "/cart/"
 
@@ -14,7 +13,7 @@ class CartPage(BasePage):
         print("장바구니 페이지 확인")
 
         current_url = self.page.url
-        if 'cart' in current_url.lower():
+        if "cart" in current_url.lower():
             print(f"장바구니 페이지 URL 확인 : {current_url}")
 
         self.should_see_element(CartPageLocators.CART_CONTAINER)
@@ -43,7 +42,7 @@ class CartPage(BasePage):
                     title = item.locator(CartPageLocators.ITEM_TITLE).inner_text()
                     price = item.locator(CartPageLocators.ITEM_PRICE).inner_text()
 
-                    items.append({'index': i+1, 'title': title, 'price': price})
+                    items.append({"index": i + 1, "title": title, "price": price})
                     print(f"{i+1}번째 상품, {title}, {price}")
 
                 except Exception as e:
@@ -67,16 +66,15 @@ class CartPage(BasePage):
             self.page.on("dialog", lambda dialog: dialog.accept())
 
             remove_btn = self.page.locator(CartPageLocators.ITEM_REMOVE)
-            remove_btn.nth(index-1).scroll_into_view_if_needed()
-            self.human_delay(1,2)
-            remove_btn.nth(index-1).click()
+            remove_btn.nth(index - 1).scroll_into_view_if_needed()
+            self.human_delay(1, 2)
+            remove_btn.nth(index - 1).click()
 
-            self.human_delay(1,2)
+            self.human_delay(1, 2)
             print(f"{index}번째 상품 제거 완료")
             return True
         except Exception as e:
             print(f"상품 제거 실패: {e}")
-
 
     def clear_cart(self):
         print("장바구니 전체 비우기")
@@ -87,7 +85,7 @@ class CartPage(BasePage):
                 print("장바구니가 이미 비어있습니다.")
                 return True
             checkbox.check()
-            self.human_delay(1,2)
+            self.human_delay(1, 2)
 
             # 다이얼로그 자동 수락 설정
             self.page.on("dialog", lambda dialog: dialog.accept())
@@ -95,7 +93,7 @@ class CartPage(BasePage):
             clear_btn = self.page.locator(CartPageLocators.ITEM_REMOVE_ALL)
             clear_btn.click()
 
-            self.human_delay(1,2)
+            self.human_delay(1, 2)
             print("전체 삭제 완료")
             return True
 
@@ -115,18 +113,18 @@ class CartPage(BasePage):
             quantity_plus = self.page.locator(CartPageLocators.QUANTITY_PLUS)
             quantity_minus = self.page.locator(CartPageLocators.QUANTITY_MINUS)
 
-            quantity_value = int(quantity_btn.nth(index-1).get_attribute('value'))
+            quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
             print(f"현재 수량: {quantity_value}, 목표 수량: {quantity}")
 
             while quantity_value < quantity:
                 quantity_plus.nth(index - 1).click()
-                self.human_delay(1,2)
-                quantity_value = int(quantity_btn.nth(index-1).get_attribute('value'))
+                self.human_delay(1, 2)
+                quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
 
             while quantity_value > quantity:
                 quantity_minus.nth(index - 1).click()
                 self.human_delay(1, 2)
-                quantity_value = int(quantity_btn.nth(index - 1).get_attribute('value'))
+                quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
 
             print(f"수량 변경 완료: {quantity_value}")
 
@@ -149,8 +147,10 @@ class CartPage(BasePage):
 
             total_price = item_info.locator(CartPageLocators.TOTAL_PRICE)
 
-            print(f"상품가격: {item_price.inner_text()} + 배송비: {shipping_fee.inner_text()}- 할인: {discount.inner_text()}"
-                f"=총 가격: {total_price.inner_text()}")
+            print(
+                f"상품가격: {item_price.inner_text()} + 배송비: {shipping_fee.inner_text()}- 할인: {discount.inner_text()}"
+                f"=총 가격: {total_price.inner_text()}"
+            )
 
             return total_price.inner_text()
 
@@ -165,12 +165,12 @@ class CartPage(BasePage):
             self.safe_click(CartPageLocators.LOGO)
             print("로고 클릭으로 홈페이지로 이동")
             from framework.pages.home_page import HomePage
+
             return HomePage(self.page)
 
         except Exception as e:
             print(f"로고 클릭 실패: {e}")
             return None
-
 
     def proceed_to_checkout(self):
         print("결제 페이지로 이동")
@@ -182,10 +182,10 @@ class CartPage(BasePage):
             expect(checkout_btn).to_be_enabled()
 
             checkout_btn.scroll_into_view_if_needed()
-            self.human_delay(1,2)
+            self.human_delay(1, 2)
             checkout_btn.click()
 
-            self.page.wait_for_url('**/checkout**',timeout=15000)
+            self.page.wait_for_url("**/checkout**", timeout=15000)
             print("결제 페이지 이동 완료")
             self.human_delay(0.3, 0.8)
 
@@ -193,8 +193,7 @@ class CartPage(BasePage):
             print(f"결제 페이지 이동 실패: {e}")
             return None
 
-
-    def click_login_button(self,username,password):
+    def click_login_button(self, username, password):
         print("로그인 버튼 클릭")
 
         try:
@@ -205,9 +204,10 @@ class CartPage(BasePage):
                     login_btn.click()
 
                 new_page = new_page_info.value
-                new_page.wait_for_load_state('networkidle')
+                new_page.wait_for_load_state("networkidle")
 
                 from framework.pages.login_page import LoginPage
+
                 login_page = LoginPage(new_page)
                 login_page.should_be_on_login_page()
 
@@ -217,11 +217,12 @@ class CartPage(BasePage):
                 else:
                     return None
 
-            except:
+            except Exception:
                 # 현재 페이지에서 전환
-                self.page.wait_for_load_state('networkidle')
+                self.page.wait_for_load_state("networkidle")
 
                 from framework.pages.login_page import LoginPage
+
                 login_page = LoginPage(self.page)
                 login_page.should_be_on_login_page()
 
@@ -247,6 +248,7 @@ class CartPage(BasePage):
 
             print("로그아웃 완료")
             from framework.pages.home_page import HomePage
+
             return HomePage(self.page)
 
         except Exception as e:

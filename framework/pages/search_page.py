@@ -1,12 +1,13 @@
-#pages/search_page.py
-from framework.base.base_page import BasePage
-from framework.config.locators import SearchPageLocators
-from playwright.sync_api import expect , Page
-import time
+# pages/search_page.py
 import random
 
-class SearchPage(BasePage):
+from playwright.sync_api import expect
 
+from framework.base.base_page import BasePage
+from framework.config.locators import SearchPageLocators
+
+
+class SearchPage(BasePage):
     def __init__(self, page):
         super().__init__(page)
         self.url_path = "/search"
@@ -17,7 +18,7 @@ class SearchPage(BasePage):
 
         # 검색 결과 컨테이너 확인
         self.should_see_element(SearchPageLocators.SEARCH_CONTAINER)
-        self.human_delay(0.3,0.8)
+        self.human_delay(0.3, 0.8)
 
         if self.page.locator(SearchPageLocators.NO_RESULT).is_visible():
             print("검색 결과가 없습니다")
@@ -43,9 +44,9 @@ class SearchPage(BasePage):
             self.click_logo()
             return None
 
-    def get_product_title(self,index):
+    def get_product_title(self, index):
         try:
-            element = self.page.locator(SearchPageLocators.PRODUCT_CARDS).nth(index-1)
+            element = self.page.locator(SearchPageLocators.PRODUCT_CARDS).nth(index - 1)
             title_element = element.locator(SearchPageLocators.PRODUCT_TITLE)
             title = title_element.inner_text()
             print(f"상품명 : {title}")
@@ -59,10 +60,9 @@ class SearchPage(BasePage):
             print(f"상품 가져오기 실패 : {e}")
             return None
 
-    def click_product_by_index(self,index):
-
+    def click_product_by_index(self, index):
         try:
-            product = self.page.locator(SearchPageLocators.PRODUCT_CARDS).nth(index-1)
+            product = self.page.locator(SearchPageLocators.PRODUCT_CARDS).nth(index - 1)
 
             if not product.is_visible():
                 print(f"{index}번째 상품을 찾을 수 없습니다")
@@ -70,44 +70,45 @@ class SearchPage(BasePage):
 
             img_element = product.locator(SearchPageLocators.PRODUCT_IMAGE)
             img_element.scroll_into_view_if_needed()
-            self.human_delay(1,2)
+            self.human_delay(1, 2)
 
             with self.page.context.expect_page() as new_page_info:
                 img_element.click()
 
             try:
                 new_page = new_page_info.value
-                new_page.wait_for_url('**/Item**',timeout=15000)
+                new_page.wait_for_url("**/Item**", timeout=15000)
                 print(f"새 페이지에서 동작 : {new_page.url}")
 
                 from framework.pages.product_page import ProductPage
+
                 return ProductPage(new_page)
 
-            except:
+            except Exception:
                 print(f"현재 페이지에서 동작 : {self.page.url}")
-                self.page.wait_for_url('**/Item**',timeout=15000)
+                self.page.wait_for_url("**/Item**", timeout=15000)
 
                 from framework.pages.product_page import ProductPage
+
                 return ProductPage(self.page)
 
         except Exception as e:
-
             print(f"{index}번째 상품 클릭 실패: {e}")
 
             return None
 
-    def apply_price_filter(self,min_price=None,max_price=None):
+    def apply_price_filter(self, min_price=None, max_price=None):
         try:
             price_filter = self.page.locator(SearchPageLocators.PRICE_FILTER)
             if price_filter:
                 if min_price:
                     min_input = price_filter.locator(SearchPageLocators.FILTER_MIN)
-                    min_input.type(str(min_price),delay=random.randint(20,30))
-                    self.human_delay(0.3,0.5)
+                    min_input.type(str(min_price), delay=random.randint(20, 30))
+                    self.human_delay(0.3, 0.5)
 
                 if max_price:
                     max_input = price_filter.locator(SearchPageLocators.FILTER_MAX)
-                    max_input.type(str(max_price),delay=random.randint(20,30))
+                    max_input.type(str(max_price), delay=random.randint(20, 30))
                     self.human_delay(0.3, 0.5)
 
                 apply_btn = price_filter.locator(SearchPageLocators.FILTER_BUTTON)
@@ -122,13 +123,12 @@ class SearchPage(BasePage):
         except Exception as e:
             print(f"가격 필터 적용 실패 : {e}")
 
-
     def sort_by_price_low_to_high(self):
         try:
             sort_dropdown = self.page.locator(SearchPageLocators.SORT_OPTIONS)
             sort_dropdown.click()
 
-            self.human_delay(2,4)
+            self.human_delay(2, 4)
 
             low_to_high = self.page.locator('[aria-label="낮은 가격순"]')
             low_to_high.click()
@@ -139,7 +139,6 @@ class SearchPage(BasePage):
 
         except Exception as e:
             print(f"정렬 실패 : {e}")
-
 
     def get_all_product_titles(self, limit=10):
         """모든 상품명 리스트 반환 (제한된 개수)"""
@@ -193,7 +192,6 @@ class SearchPage(BasePage):
             print("검색 결과가 없습니다")
             return False
 
-
     def click_logo(self):
         print("쇼핑 계속하기")
 
@@ -201,15 +199,14 @@ class SearchPage(BasePage):
             self.safe_click(SearchPageLocators.LOGO)
             print("메인 페이지로 이동")
             from framework.pages.home_page import HomePage
+
             return HomePage(self.page)
 
         except Exception as e:
             print(f"로고 클릭 실패: {e}")
             return False
 
-
-
-    def click_login_button(self,username,password):
+    def click_login_button(self, username, password):
         print("로그인 버튼 클릭")
 
         try:
@@ -220,9 +217,10 @@ class SearchPage(BasePage):
                     login_btn.click()
 
                 new_page = new_page_info.value
-                new_page.wait_for_load_state('networkidle')
+                new_page.wait_for_load_state("networkidle")
 
                 from framework.pages.login_page import LoginPage
+
                 login_page = LoginPage(new_page)
                 login_page.should_be_on_login_page()
 
@@ -232,11 +230,12 @@ class SearchPage(BasePage):
                 else:
                     return None
 
-            except:
+            except Exception:
                 # 현재 페이지에서 전환
-                self.page.wait_for_load_state('networkidle')
+                self.page.wait_for_load_state("networkidle")
 
                 from framework.pages.login_page import LoginPage
+
                 login_page = LoginPage(self.page)
                 login_page.should_be_on_login_page()
 
@@ -262,6 +261,7 @@ class SearchPage(BasePage):
 
             print("로그아웃 완료")
             from framework.pages.home_page import HomePage
+
             return HomePage(self.page)
 
         except Exception as e:
@@ -277,4 +277,5 @@ class SearchPage(BasePage):
         print("  ✓ 장바구니 페이지 이동")
 
         from framework.pages.cart_page import CartPage
+
         return CartPage(self.page)

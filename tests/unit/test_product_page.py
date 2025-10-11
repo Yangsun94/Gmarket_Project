@@ -1,14 +1,12 @@
 import pytest
-from playwright.sync_api import Page,expect
 
 from framework.pages.home_page import HomePage
-from framework.pages.product_page import ProductPage
+
 
 class TestProductPage:
-
-    #상품 페이지 정상적으로 로드되는지 테스트
+    # 상품 페이지 정상적으로 로드되는지 테스트
     @pytest.mark.smoke
-    def test_product_page_loads_successfully(self,page):
+    def test_product_page_loads_successfully(self, page):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
 
@@ -18,9 +16,8 @@ class TestProductPage:
         product_page = search_page.click_product_by_index(1)
         product_page.should_be_on_product_page()
 
-
-    #상품 정보 가져오기
-    def test_product_info(self,page):
+    # 상품 정보 가져오기
+    def test_product_info(self, page):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
 
@@ -36,10 +33,10 @@ class TestProductPage:
         assert len(product_info["price"]) > 0
         assert len(product_info["shipping"]) > 0
 
-class TestProductPageExploration:
 
-    #페이지 탐색 테스트
-    def test_scroll_and_explor(self,page):
+class TestProductPageExploration:
+    # 페이지 탐색 테스트
+    def test_scroll_and_explor(self, page):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
 
@@ -50,12 +47,12 @@ class TestProductPageExploration:
         product_page.should_be_on_product_page()
         product_page.scroll_and_explore()
 
-class TestProductPageCart:
 
-    #장바구니 담기 테스트
+class TestProductPageCart:
+    # 장바구니 담기 테스트
     @pytest.mark.slow
     @pytest.mark.parametrize("quantity", [2, 3, 5])
-    def test_add_to_cart(self,page,quantity):
+    def test_add_to_cart(self, page, quantity):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
 
@@ -69,7 +66,6 @@ class TestProductPageCart:
 
 
 class TestProductPageNavigation:
-
     # 로고 클릭 테스트
     def test_return_to_home_via_logo(self, page):
         homepage = HomePage(page)
@@ -81,7 +77,6 @@ class TestProductPageNavigation:
         product_page = search_page.click_product_by_index(1)
         product_page.should_be_on_product_page()
         product_page.click_logo()
-
 
     # 로그인 테스트
     @pytest.mark.login
@@ -95,8 +90,7 @@ class TestProductPageNavigation:
         product_page = search_page.click_product_by_index(1)
         product_page.should_be_on_product_page()
 
-        product_page.click_login_button(test_account['id'],test_account['password'])
-
+        product_page.click_login_button(test_account["id"], test_account["password"])
 
     # 로그아웃 테스트
     @pytest.mark.login
@@ -110,11 +104,10 @@ class TestProductPageNavigation:
         product_page = search_page.click_product_by_index(1)
         product_page.should_be_on_product_page()
 
-        product_page.click_login_button(test_account['id'], test_account['password'])
+        product_page.click_login_button(test_account["id"], test_account["password"])
 
         homepage = product_page.logout()
         homepage.should_be_on_homepage()
-
 
     # 장바구니 테스트
     def test_cart_from_product_page(self, page, test_account):

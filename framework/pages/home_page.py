@@ -1,21 +1,16 @@
-#pages/home_page.py
+# pages/home_page.py
 
-import pytest
+from playwright.sync_api import expect
 
 from framework.base.base_page import BasePage
 from framework.config.locators import GmarketLocators, SearchPageLocators
-from playwright.sync_api import expect
-
-from framework.pages.search_page import SearchPage
 
 
-#G마켓 홈페이지 클래스
+# G마켓 홈페이지 클래스
 class HomePage(BasePage):
-    def __init__(self,page):
+    def __init__(self, page):
         super().__init__(page)
         self.url_path = ""
-
-
 
     def visit(self):
         print("G마켓 홈페이지 방문")
@@ -33,67 +28,68 @@ class HomePage(BasePage):
         if "G마켓" not in current_title and "gmarket" not in current_title.lower():
             raise AssertionError(f"홈페이지가 아닙니다. 현재 제목 : {current_title}")
 
-        #로고 확인
+        # 로고 확인
         self.should_see_element(GmarketLocators.LOGO)
         print("홈페이지 도달 확인 완료")
         return self
 
-    #홈페이지 주요 요소들 보이는지 확인
+    # 홈페이지 주요 요소들 보이는지 확인
     def should_see_main_elements(self):
         print("홈페이지 주요 요소 확인")
 
-        #헤더 확인
+        # 헤더 확인
         self.should_see_element(GmarketLocators.HEADER)
         print("헤더 표시됨")
-        #로고 확인
+        # 로고 확인
         self.should_see_element(GmarketLocators.LOGO)
         print("로고 표시됨")
-        #검색창 확인
+        # 검색창 확인
         self.should_see_element(GmarketLocators.SEARCH_INPUT)
         print("검색창 표시됨")
-        #검색 버튼 확인
+        # 검색 버튼 확인
         self.should_see_element(GmarketLocators.SEARCH_BUTTON)
         print("검색 버튼 표시 됨")
 
         print("주요 요소 확인됨")
         return self
 
-    #상품 검색
-    def search_product(self,keyword):
+    # 상품 검색
+    def search_product(self, keyword):
         print(f"상품 검색 : '{keyword}'")
 
-        #검색창에 키워드 입력
-        self.safe_type(GmarketLocators.SEARCH_INPUT,keyword)
+        # 검색창에 키워드 입력
+        self.safe_type(GmarketLocators.SEARCH_INPUT, keyword)
         print(f"검색어 입력 : '{keyword}'")
 
-        #검색버튼 클릭
+        # 검색버튼 클릭
         self.safe_click(GmarketLocators.SEARCH_BUTTON)
 
-        #검색 결과 페이지로 이동될 때까지 대기
-        self.page.wait_for_url('**/search**',timeout=15000)
+        # 검색 결과 페이지로 이동될 때까지 대기
+        self.page.wait_for_url("**/search**", timeout=15000)
         print("검색 결과 페이지로 이동 완료")
 
-        #SearchPage객체 반환
+        # SearchPage객체 반환
         from framework.pages.search_page import SearchPage
+
         return SearchPage(self.page)
 
-
-    #엔터키로 검색
-    def search_with_enter(self,keyword):
+    # 엔터키로 검색
+    def search_with_enter(self, keyword):
         print(f"Enter 키로 검색 : {keyword}")
 
         self.safe_click(GmarketLocators.SEARCH_INPUT)
-        self.safe_type(GmarketLocators.SEARCH_INPUT,keyword,clear=True)
+        self.safe_type(GmarketLocators.SEARCH_INPUT, keyword, clear=True)
 
         self.safe_press("Enter")
         print("Enter 키 입력")
 
-        #검색 결과 페이지 대기
-        self.page.wait_for_url('**/search**',timeout=15000)
+        # 검색 결과 페이지 대기
+        self.page.wait_for_url("**/search**", timeout=15000)
         print("검색결과 페이지 이동 완료")
 
-        #SearchPage객체 반환
+        # SearchPage객체 반환
         from framework.pages.search_page import SearchPage
+
         return SearchPage(self.page)
 
     def should_see_search_suggestions(self):
@@ -126,7 +122,7 @@ class HomePage(BasePage):
 
         try:
             self.safe_click(SearchPageLocators.LOGO)
-            self.should_see_element('#comp_24948199')
+            self.should_see_element("#comp_24948199")
             print("추천픽 페이지로 이동")
             return True
 
@@ -134,7 +130,7 @@ class HomePage(BasePage):
             print(f"로고 클릭 실패: {e}")
             return False
 
-    def click_login_button(self,username,password):
+    def click_login_button(self, username, password):
         print("로그인 버튼 클릭")
 
         try:
@@ -145,9 +141,10 @@ class HomePage(BasePage):
                     login_btn.click()
 
                 new_page = new_page_info.value
-                new_page.wait_for_load_state('networkidle')
+                new_page.wait_for_load_state("networkidle")
 
                 from framework.pages.login_page import LoginPage
+
                 login_page = LoginPage(new_page)
                 login_page.should_be_on_login_page()
 
@@ -157,11 +154,12 @@ class HomePage(BasePage):
                 else:
                     return None
 
-            except:
+            except Exception:
                 # 현재 페이지에서 전환
-                self.page.wait_for_load_state('networkidle')
+                self.page.wait_for_load_state("networkidle")
 
                 from framework.pages.login_page import LoginPage
+
                 login_page = LoginPage(self.page)
                 login_page.should_be_on_login_page()
 
@@ -201,6 +199,7 @@ class HomePage(BasePage):
         print("  ✓ 장바구니 페이지 이동")
 
         from framework.pages.cart_page import CartPage
+
         return CartPage(self.page)
 
     # ==============================================
@@ -262,7 +261,6 @@ class HomePage(BasePage):
 
         return self
 
-
     # ==============================================
     # 유틸리티 메서드
     # ==============================================
@@ -285,7 +283,7 @@ class HomePage(BasePage):
             status = "로그아웃 상태" if is_visible else "로그인 상태"
             print(f"현재 상태: {status}")
             return is_visible
-        except:
+        except Exception:
             return True  # 에러 시 로그아웃 상태로 가정
 
     def wait_for_page_load(self):
@@ -318,12 +316,9 @@ class HomePage(BasePage):
         print("페이지 오류 확인")
 
         # 일반적인 오류 메시지들 확인
-        error_messages = [
-            "error", "오류", "문제가 발생", "접속 불가",
-            "service unavailable", "502", "503", "404"
-        ]
+        error_messages = ["error", "오류", "문제가 발생", "접속 불가", "service unavailable", "502", "503", "404"]
 
-        page_text = self.page.locator('body').inner_text().lower()
+        page_text = self.page.locator("body").inner_text().lower()
 
         for error_msg in error_messages:
             if error_msg in page_text:
@@ -333,6 +328,3 @@ class HomePage(BasePage):
 
         print("오류 없음")
         return self
-
-
-

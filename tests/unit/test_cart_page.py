@@ -1,12 +1,10 @@
-import time
-
 import pytest
+
 from framework.pages.home_page import HomePage
-from framework.pages.product_page import ProductPage
+
 
 class TestCartPageBasic:
-
-    #장바구니 페이지가 정상적으로 로드되는지 확인
+    # 장바구니 페이지가 정상적으로 로드되는지 확인
     @pytest.mark.smoke
     def test_cart_page_loads_successfully(self, page):
         homepage = HomePage(page)
@@ -15,7 +13,7 @@ class TestCartPageBasic:
         cart_page = homepage.click_cart_button()
         cart_page.should_be_on_cart_page()
 
-    #빈 장바구니 상태 확인
+    # 빈 장바구니 상태 확인
     def test_empty_cart(self, page):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
@@ -27,9 +25,9 @@ class TestCartPageBasic:
         items = cart_page.get_cart_items()
         assert len(items) == 0, "장바구니가 비어있어야 합니다"
 
-class TestCartPageItems:
 
-    #장바구니 상품 목록 가져오기
+class TestCartPageItems:
+    # 장바구니 상품 목록 가져오기
     @pytest.mark.slow
     def test_get_cart_items(self, page):
         homepage = HomePage(page)
@@ -51,11 +49,9 @@ class TestCartPageItems:
 
 
 class TestCartPageQuantity:
-
-    #수량 증가 테스트
+    # 수량 증가 테스트
     @pytest.mark.slow
     def test_increase_quantity(self, page):
-
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
 
@@ -70,8 +66,7 @@ class TestCartPageQuantity:
         cart_page.should_be_on_cart_page()
         cart_page.update_quantity(index=1, quantity=3)
 
-
-    #수량 감소 테스트
+    # 수량 감소 테스트
     @pytest.mark.slow
     def test_decrease_quantity(self, page):
         homepage = HomePage(page)
@@ -88,16 +83,16 @@ class TestCartPageQuantity:
         cart_page.should_be_on_cart_page()
         cart_page.update_quantity(index=1, quantity=4)
 
-    '''
+    """
 class TestCartPageRemove:
-    '''
-    #단일 상품 삭제 테스트
-    @pytest.mark.slow
-    def test_remove_single_item(self, page,test_account):
+    """
 
+    # 단일 상품 삭제 테스트
+    @pytest.mark.slow
+    def test_remove_single_item(self, page, test_account):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
-        homepage.click_login_button(test_account['id'],test_account['password'])
+        homepage.click_login_button(test_account["id"], test_account["password"])
 
         # 첫 번째 상품 담기
         search_page = homepage.search_product("마우스")
@@ -123,10 +118,8 @@ class TestCartPageRemove:
         cart_page.remove_item(1)
 
 
-
 class TestCartPagePrice:
-
-    #총 금액 추출 테스트
+    # 총 금액 추출 테스트
     @pytest.mark.slow
     def test_get_total_price(self, page):
         homepage = HomePage(page)
@@ -147,8 +140,7 @@ class TestCartPagePrice:
 
 
 class TestCartPageNavigation:
-
-    #로고 클릭 테스트
+    # 로고 클릭 테스트
     def test_return_to_home_via_logo(self, page):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
@@ -160,12 +152,12 @@ class TestCartPageNavigation:
         homepage = cart_page.click_logo()
         homepage.should_be_on_homepage()
 
-    #결제 페이지 이동 테스트
+    # 결제 페이지 이동 테스트
     @pytest.mark.slow
-    def test_cart_to_checkout_navigation(self, page,test_account):
+    def test_cart_to_checkout_navigation(self, page, test_account):
         homepage = HomePage(page)
         homepage.visit().should_be_on_homepage()
-        homepage.click_login_button(test_account['id'],test_account['password'])
+        homepage.click_login_button(test_account["id"], test_account["password"])
 
         search_page = homepage.search_product("자물쇠")
         search_page.should_be_on_search_page()
@@ -177,4 +169,4 @@ class TestCartPageNavigation:
         cart_page = product_page.click_cart_button()
         cart_page.should_be_on_cart_page()
 
-        checkout_page = cart_page.proceed_to_checkout()
+        cart_page.proceed_to_checkout()

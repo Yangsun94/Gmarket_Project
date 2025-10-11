@@ -1,29 +1,28 @@
-#config/locators.py
+# config/locators.py
 
 
-#G마켓 메인 페이지 selector들
+# G마켓 메인 페이지 selector들
 class GmarketLocators:
-
-    #로그인 관련
+    # 로그인 관련
     LOGIN_BUTTON = 'a:has-text("로그인")'
     LOGOUT_BUTTON = 'a:has-text("로그아웃")'
 
-    #헤더 영역
+    # 헤더 영역
     HEADER = "#header"
     LOGO = ".link__head"
     CART_BUTTON = "li.list-item.list-item--cart"
 
-    #검색 영역
+    # 검색 영역
     SEARCH_INPUT = "input[name= 'keyword']"
     SEARCH_BUTTON = "button[type='submit']"
     SEARCH_SUGGESTION = "#skip-navigation-search"
 
-    #네비게이션
+    # 네비게이션
     CATEGORY_MENU = "#box__category-all-layer > ul > li.list-item__1depth > a"
 
-#검색 결과 페이지 selector들
-class SearchPageLocators:
 
+# 검색 결과 페이지 selector들
+class SearchPageLocators:
     LOGO = ".link__head"
     CART_BUTTON = "li.list-item.list-item--cart"
 
@@ -31,17 +30,17 @@ class SearchPageLocators:
     LOGIN_BUTTON = 'a:has-text("로그인")'
     LOGOUT_BUTTON = 'a:has-text("로그아웃")'
 
-    #검색 결과 컨테이너
+    # 검색 결과 컨테이너
     SEARCH_CONTAINER = "#container"
     NO_RESULT = ".box__ment"
 
-    #개별 상품 카드
+    # 개별 상품 카드
     PRODUCT_CARDS = ".box__component.box__component-itemcard.box__component-itemcard--general"
     PRODUCT_TITLE = "span.text__item"
     PRODUCT_PRICE = "strong.text.text__value"
     PRODUCT_IMAGE = "img.image__item"
 
-    #필터 및 정렬
+    # 필터 및 정렬
     SORT_OPTIONS = ".button__toggle-sort"
     PRICE_FILTER = ".box__component.box__component-filter.box__component-price-filter"
     FILTER_MIN = "input[placeholder*='최소']"
@@ -49,9 +48,8 @@ class SearchPageLocators:
     FILTER_BUTTON = "button.button__filter-price.montelena-post"
 
 
-#검색 상세 페이지 selector들
+# 검색 상세 페이지 selector들
 class ProductPageLocators:
-
     # 로그인 관련
     LOGIN_BUTTON = 'a:has-text("로그인")'
     LOGOUT_BUTTON = 'a:has-text("로그아웃")'
@@ -76,13 +74,12 @@ class ProductPageLocators:
     PRODUCT_SELECT = ".bt_select.uxeselect_btn"
     ADD_CART = "#coreAddCartBtn"
 
-    #팝업
+    # 팝업
     POPUP_BUTTON = ".btn_round.btn_gray"
 
 
-#장바구니 페이지 selector들
+# 장바구니 페이지 selector들
 class CartPageLocators:
-
     # 로그인 관련
     LOGIN_BUTTON = 'a:has-text("로그인")'
     LOGOUT_BUTTON = 'a:has-text("로그아웃")'
@@ -116,9 +113,9 @@ class CartPageLocators:
     # 체크아웃
     CHECKOUT_BUTTON = "button.btn_submit"
 
-#로그인 페이지 selector들
-class LoginPageLocators:
 
+# 로그인 페이지 selector들
+class LoginPageLocators:
     # 아이디 입력
     ID_INPUT = "#typeMemberInputId"
 
