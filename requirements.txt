@@ -14,4 +14,4 @@ pytest-xdist==3.6.1
 
 # 설치 팁:
 # 1. 기본 패키지들만 먼저: pip install -r requirements.txt
-# 2. 고급 기능은 개별로: pip install allure-pytest pydantic
+# 2. 고급 기능은 개별로: pip install pydantic

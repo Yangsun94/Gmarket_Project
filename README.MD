@@ -2,7 +2,6 @@
 
 Playwright와 Pytest를 활용한 G마켓 E-commerce 웹 자동화 테스트 프레임워크
 
-[![Tests](https://github.com/YOUR_USERNAME/gmarket-automation/actions/workflows/test.yml/badge.svg)](https://github.com/YOUR_USERNAME/gmarket-automation/actions)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue)](https://www.python.org/)
 [![Playwright](https://img.shields.io/badge/Playwright-1.48.0-green)](https://playwright.dev/)
 
@@ -43,7 +42,7 @@ Playwright와 Pytest를 활용한 G마켓 E-commerce 웹 자동화 테스트 프
 gmarket-automation/
 ├── .github/
 │   └── workflows/
-│       └── quality-check.yml             # GitHub Actions workflow
+│       └── test.yml              # GitHub Actions workflow
 ├── framework/
 │   ├── base/
 │   │   └── base_page.py          # 모든 페이지의 베이스 클래스
@@ -107,8 +106,6 @@ playwright install chromium
 TEST_ID=본인의_G마켓_ID
 TEST_PASSWORD=본인의_G마켓_비밀번호
 ```
-
-> ⚠️ **주의**: `.env` 파일은 `.gitignore`에 포함되어 GitHub에 업로드되지 않습니다.
 
 **선택사항**: 헤드리스 모드로 실행하려면 추가:
 
@@ -186,6 +183,42 @@ GitHub Actions를 통한 **코드 품질 자동 검사**가 구성되어 있습�
 
 #### **보안 검사**
 - **Safety**: 알려진 보안 취약점 검사
+
+### 로컬에서 코드 품질 검사
+
+#### **자동 포맷팅 (commit 전 실행 권장)**
+
+```bash
+# Black: 코드 포맷팅
+black framework/ tests/ --line-length=120
+
+# isort: Import 정렬
+isort framework/ tests/ --profile black
+```
+
+#### **코드 검사**
+
+```bash
+# Flake8: 스타일 검사
+flake8 framework/ tests/ --max-line-length=120 --extend-ignore=E203,W503
+
+# Pylint: 품질 분석
+pylint framework/ --fail-under=7.0
+```
+
+#### **Pre-commit Hook 설정 (추천)**
+
+commit 전에 자동으로 포맷팅:
+
+```bash
+# 설치
+pip install pre-commit
+
+# 활성화
+pre-commit install
+
+# 이제 git commit 시 자동으로 실행됨!
+```
 
 ### 로컬 테스트 실행
 

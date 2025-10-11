@@ -24,37 +24,44 @@ jobs:
     - name: 코드 품질 도구 설치
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black pylint
-
-    - name: 코드 스타일 검사 (Flake8)
-      run: |
-        # 기본적인 코드 스타일 검사
-        flake8 framework/ tests/ --max-line-length=120 --extend-ignore=E203,W503
-      continue-on-error: true
+        pip install flake8 black pylint isort
 
     - name: 코드 포맷 검사 (Black)
       run: |
-        # 코드 포맷팅 일관성 검사
+        echo "코드 포맷팅이 올바른지 검사합니다..."
+        echo "로컬에서 'black framework/ tests/ --line-length=120'를 실행하세요"
         black --check framework/ tests/ --line-length=120
+
+    - name: Import 정렬 검사 (isort)
+      run: |
+        echo "Import 정렬이 올바른지 검사합니다..."
+        echo "로컬에서 'isort framework/ tests/ --profile black'을 실행하세요"
+        isort --check-only framework/ tests/ --profile black
+
+    - name: 코드 스타일 검사 (Flake8)
+      run: |
+        echo "PEP 8 스타일 가이드를 따르는지 검사합니다..."
+        flake8 framework/ tests/ --max-line-length=120 --extend-ignore=E203,W503 --statistics
       continue-on-error: true
 
     - name: 코드 품질 분석 (Pylint)
       run: |
-        # 상세한 코드 품질 분석
-        pylint framework/ --fail-under=7.0 --max-line-length=120 || true
-      continue-on-error: true
-
-    - name: Import 정렬 검사 (isort)
-      run: |
-        pip install isort
-        isort --check-only framework/ tests/ --profile black
+        echo "코드 품질을 분석합니다 (목표: 7.0/10.0 이상)..."
+        pylint framework/ --fail-under=7.0 --max-line-length=120 || echo "⚠️ Pylint 점수가 7.0 미만입니다"
       continue-on-error: true
 
     - name: 품질 검사 요약
       if: always()
       run: |
-        echo "✅ 코드 품질 검사 완료"
-        echo "상세 결과는 위의 각 단계를 확인하세요"
+        echo "코드 품질 검사 완료"
+        echo ""
+        echo "로컬에서 자동 수정 방법:"
+        echo "  black framework/ tests/ --line-length=120"
+        echo "  isort framework/ tests/ --profile black"
+        echo ""
+        echo "Pre-commit Hook 설치:"
+        echo "  pip install pre-commit"
+        echo "  pre-commit install"
 
   security-check:
     runs-on: ubuntu-latest
@@ -70,13 +77,16 @@ jobs:
 
     - name: 보안 취약점 검사 (Safety)
       run: |
+        echo "알려진 보안 취약점을 검사합니다..."
         pip install safety
         pip install -r requirements.txt
-        safety check --json || true
+        safety check --json || echo "보안 취약점이 발견되었습니다"
       continue-on-error: true
 
     - name: 보안 검사 요약
       if: always()
       run: |
         echo "✅ 보안 검사 완료"
-        echo "알려진 취약점이 있는지 확인했습니다"
+        echo ""
+        echo "💡 취약점이 발견된 경우:"
+        echo "  pip install --upgrade [패키지명]"
