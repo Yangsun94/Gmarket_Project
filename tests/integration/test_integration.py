@@ -7,7 +7,7 @@ import time
 
 #전체 쇼핑 플로우 통합 테스트
 class TestShoppingFlow:
-    '''
+
     @pytest.fixture
     def home_page(self, page):
         return HomePage(page)
@@ -54,6 +54,7 @@ class TestCartIntegration:
         return HomePage(page)
 
     @pytest.mark.integration
+    @pytest.mark.login
     @pytest.mark.cart
     def test_cart_integration(self, home_page,test_account):
         print("장바구니 통합 테스트 시작")
@@ -117,7 +118,7 @@ class TestCartIntegration:
 
         print("장바구니 통합 테스트 완료")
 
-    '''
+
 
 class TestLoginFlow:
 
