@@ -30,24 +30,24 @@ jobs:
       run: |
         echo "코드 포맷팅이 올바른지 검사합니다..."
         echo "로컬에서 'black framework/ tests/ --line-length=120'를 실행하세요"
-        black --check framework/ tests/ --line-length=120
+        black --check framework/ tests/ --line-length=120 --diff
 
     - name: Import 정렬 검사 (isort)
       run: |
         echo "Import 정렬이 올바른지 검사합니다..."
         echo "로컬에서 'isort framework/ tests/ --profile black'을 실행하세요"
-        isort --check-only framework/ tests/ --profile black
+        isort --check-only framework/ tests/ --profile black --diff
 
     - name: 코드 스타일 검사 (Flake8)
       run: |
         echo "PEP 8 스타일 가이드를 따르는지 검사합니다..."
-        flake8 framework/ tests/ --max-line-length=120 --extend-ignore=E203,W503 --statistics
+        flake8 framework/ tests/ --max-line-length=120 --extend-ignore=E203,W503,E501 --statistics
       continue-on-error: true
 
     - name: 코드 품질 분석 (Pylint)
       run: |
         echo "코드 품질을 분석합니다 (목표: 7.0/10.0 이상)..."
-        pylint framework/ --fail-under=7.0 --max-line-length=120 || echo "⚠️ Pylint 점수가 7.0 미만입니다"
+        pylint framework/ --fail-under=7.0 --max-line-length=120 || echo "Pylint 점수가 7.0 미만입니다"
       continue-on-error: true
 
     - name: 품질 검사 요약

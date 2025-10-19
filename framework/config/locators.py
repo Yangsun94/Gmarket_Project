@@ -13,12 +13,13 @@ class GmarketLocators:
     CART_BUTTON = "li.list-item.list-item--cart"
 
     # 검색 영역
-    SEARCH_INPUT = "input[name= 'keyword']"
+    SEARCH_INPUT = "input[name='keyword']"
     SEARCH_BUTTON = "button[type='submit']"
-    SEARCH_SUGGESTION = "#skip-navigation-search"
+    SEARCH_SUGGESTION = "#box__search-keyword > div > ul > li"
 
     # 네비게이션
     CATEGORY_MENU = "#box__category-all-layer > ul > li.list-item__1depth > a"
+    COMPANY_INFO = "#desktop_layout-footer"
 
 
 # 검색 결과 페이지 selector들
@@ -89,7 +90,7 @@ class CartPageLocators:
     LOGO = "h1.box__title-logo > a"
 
     # 장바구니 아이템
-    CART_ITEMS = ".shipping--no--group"
+    CART_ITEMS = "ul.order--list > li > div.item"
     ITEM_IMAGE = "div.item_img > a"
     ITEM_TITLE = "div.section.item_title > a"
     ITEM_PRICE = "div.section.item_price"

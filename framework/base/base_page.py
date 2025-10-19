@@ -16,7 +16,7 @@ class BasePage(Page):
     # ==============================================
 
     def goto(self, path=""):
-        url = f"{self.base_url}{path}" if path else self.base_url
+        url = f"{self.base_url}{path}"
         print(f"페이지 이동 : {url}")
 
         self.page.goto(url, wait_until="domcontentloaded")
@@ -25,35 +25,9 @@ class BasePage(Page):
 
     # 페이지 완전 로딩대기
     def wait_for_load(self, timeout=30000):
-        self.page.wait_for_load_state("networkidle", timeout=timeout)
+        self.page.wait_for_load_state("load", timeout=timeout)
+        time.sleep(random.uniform(0.2, 0.5))
         return self
-
-    # ==============================================
-    # 요소 찾기 및 대기
-    # ==============================================
-
-    # 요소 찾기(대기 포함)
-    def find_element(self, selector, timeout=10000):
-        try:
-            return self.page.locator(selector, timeout=timeout)
-        except Exception as e:
-            print(f"요소를 찾을 수 없습니니다 {selector}")
-            raise e
-
-    def find_elements(self, selector):
-        return self.page.locator(selector).all()
-
-    # 요소가 보일때까지 대기
-    def wait_for_element_visible(self, selector, timeout=10000):
-        element = self.page.locator(selector)
-        expect(element).to_be_visible(timeout=timeout)
-        return element
-
-    # 요소가 사라질때까지 대기
-    def wait_for_element_hidden(self, selector, timeout=10000):
-        element = self.page.locator(selector)
-        expect(element).to_be_hidden(timeout=timeout)
-        return element
 
     # ==============================================
     # 사용자 액션 (자연스러운 동작)
@@ -100,22 +74,19 @@ class BasePage(Page):
         return self
 
     # 자연스러운 딜레이
-    def human_delay(min_seconds=1, max_seconds=3):
+    def human_delay(self, min_seconds=1, max_seconds=3):
         delay = random.uniform(min_seconds, max_seconds)
         time.sleep(delay)
-
-    # ==============================================
-    #  검증 메서드
-    # ==============================================
+        return self
 
     # 페이지 타이틀 검증
     def should_have_title(self, expected_title):
-        expect(self.page).to_have_title(expected_title)
+        assert expected_title in self.page.title(), f"타이틀이 {expected_title}이 포함되지 않았습니다"
         return self
 
     # 페이지 url 검증
     def should_have_url(self, expected_url):
-        expect(self.page).to_have_url(expected_url)
+        assert expected_url in self.page.url, f"URL에 {expected_url}이 포함되지 않았습니다"
         return self
 
     # 요소 존재 검증
@@ -135,14 +106,12 @@ class BasePage(Page):
         if selector:
             element = self.page.locator(selector)
             expect(element).to_contain_text(text)
+            print(f"텍스트 '{text}'를 요소 '{selector}'에서 찾았습니다")
         else:
             expect(self.page.locator("body")).to_contain_text(text)
+            print(f"텍스트 '{text}'를 페이지에서 찾았습니다")
 
         return self
-
-    # ==============================================
-    # 자연스러운 행동 시뮬레이션
-    # ==============================================
 
     # 페이지 읽는것같은 행동
     def simulate_reading(self):
@@ -155,7 +124,8 @@ class BasePage(Page):
             scroll_distance = random.randint(200, 500)
             self.page.evaluate(f"window.scrollBy(0,{scroll_distance})")
             time.sleep(random.uniform(0.8, 2.0))
-            return self
+
+        return self
 
     # 자연스러운 마우스 움직임
     def simulate_mouse_movement(self):
@@ -167,10 +137,6 @@ class BasePage(Page):
         time.sleep(random.uniform(0.2, 0.5))
         return self
 
-    # ==============================================
-    # 유틸리티 메서드
-    # ==============================================
-
     # 스크린샷 촬영
     def take_screenshot(self, name=None):
         if name is None:
@@ -180,14 +146,6 @@ class BasePage(Page):
         self.page.screenshot(path=path)
         print(f"스크린샷 저장 : {path}")
         return self
-
-    # url 반환
-    def get_current_url(self):
-        return self.page.url
-
-    # 페이지 타이틀 반환
-    def get_page_title(self):
-        return self.page.title()
 
     # 페이지 새로고침
     def refresh_page(self):

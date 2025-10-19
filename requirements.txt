@@ -1,16 +1,68 @@
-# 기본 패키지들 (의존성 순서대로)
+# 테스트 프레임워크 (Core)
+
+# Playwright: 웹 브라우저 자동화
 playwright>=1.40.0
+
+# pytest: 테스트 프레임워크
 pytest==7.4.3
 pytest-playwright==0.4.3
+
+# pytest-html: HTML 테스트 리포트 생성
 pytest-html==4.1.1
+
+# pytest-cov: 코드 커버리지 측정
+pytest-cov==5.0.0
+
+# pytest-xdist: 병렬 테스트 실행
+pytest-xdist==3.5.0
+
+# 유틸리티
+
+# faker: 테스트 데이터 생성 (필요 시)
 faker==19.12.0
+
+# python-dotenv: .env 파일에서 환경 변수 로드
 python-dotenv==1.0.0
 
-# 고급 기능 (필요시 주석 해제)
-black==23.12.1
+# 코드 품질 도구 (Development)
+
+# Black: 코드 포맷터
+black==24.3.0
+
+# isort: import 문 정렬
 isort==5.13.2
+
+# Flake8: 린터
 flake8==7.0.0
-pre-commit==3.6.0
+
+# Git Hooks (Development)
+
+# pre-commit: Git 커밋 전 자동 검사
+pre-commit==3.6.2
 
 # 설치 팁:
-# 1. 기본 패키지들만 먼저: pip install -r requirements.txt
+# 1. 가상환경 생성
+#    python -m venv venv
+#
+# 2. 가상환경 활성화
+#    Windows: venv\Scripts\activate
+#    macOS/Linux: source venv/bin/activate
+#
+# 3. 패키지 설치
+#    pip install -r requirements.txt
+#
+# 4. Playwright 브라우저 설치
+#    playwright install chromium
+#
+# 5. pre-commit 설정
+#    pre-commit install
+
+# 병렬 실행 팁
+
+# - 로그인 테스트는 계정 충돌 가능 (순차 권장)
+# - 통합 테스트는 느려서 병렬 효과 적음 (순차 권장)
+
+#  전체 테스트 (단계별):
+#    pytest -n auto -m "not integration and not login"  # 병렬
+#    pytest -m integration                              # 순차
+#    pytest -m login                                    # 순차

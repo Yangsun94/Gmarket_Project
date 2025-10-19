@@ -4,26 +4,39 @@ from framework.pages.home_page import HomePage
 
 
 class TestHomePage:
-    # 홈페이지 접속 테스트
+    # visit(), should_be_on_homepage() 테스트
     @pytest.mark.smoke
     def test_homepage_loads_successfully(self, page):
         homepage = HomePage(page)
         homepage.visit()
         homepage.should_be_on_homepage()
 
-    # 주요 요소들이 보이는지 테스트
+    # should_see_main_elements() 테스트
     @pytest.mark.smoke
     def test_main_elements_visible(self, page):
         homepage = HomePage(page)
         homepage.visit()
+        homepage.should_be_on_homepage()
+
         homepage.should_see_main_elements()
+
+    # wait_for_page_load() 테스트
+    def test_wait_for_page_load(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        result = homepage.wait_for_page_load()
+
+        assert result == homepage
+        homepage.should_be_on_homepage()
 
 
 class TestHomePageSearch:
     # 클릭으로 검색 테스트
     @pytest.mark.smoke
     @pytest.mark.parametrize("keyword", ["마우스", "노트북", "뭭뤡"])
-    def test_test_search_with_button(self, page, keyword):
+    def test_search_with_button(self, page, keyword):
         homepage = HomePage(page)
         homepage.visit()
         homepage.should_be_on_homepage()
@@ -48,7 +61,9 @@ class TestHomePageSearch:
         homepage.visit()
         homepage.should_be_on_homepage()
         homepage.type_in_search_without_submit("아이폰")
-        homepage.should_see_search_suggestions()
+        suggestions = homepage.should_see_search_suggestions()
+
+        assert suggestions.count() > 0, "자동완성 목록이 비어있습니다"
 
 
 class TestHomePageNavigation:
@@ -87,9 +102,13 @@ class TestHomePageNavigation:
         homepage.should_be_on_homepage()
 
         homepage.click_login_button(test_account["id"], test_account["password"])
-        homepage.logout()
+
+        homepage = homepage.logout()
+        assert homepage is not None, "로그아웃 실패로 homepage가 None입니다"
         assert homepage.is_login_button_visible(), "로그인 버튼이 표시되지 않습니다"
 
+
+class TestHomePageUserBehavior:
     # 카테고리에 마우스 hover 테스트
     def test_hover_over_categories(self, page):
         homepage = HomePage(page)
@@ -115,3 +134,16 @@ class TestHomePageErrors:
         homepage.visit()
         homepage.should_be_on_homepage()
         homepage.verify_no_errors()
+
+
+class TestSearchPageEdgeCases:
+    # 특수문자, 영문, 숫자 검색 테스트
+    @pytest.mark.slow
+    @pytest.mark.parametrize("keyword", ["USB-C 케이블", "아이폰 15", "Iphone", "갤럭시 Galaxy"])
+    def test_search_with_special_characters(self, page, keyword):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product(keyword)
+        search_page.should_be_on_search_page()

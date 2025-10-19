@@ -4,41 +4,99 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Virtual Environments
 venv/
 env/
 ENV/
+.venv/
+
+# Distribution / Packaging
 *.egg-info/
 dist/
 build/
+*.egg
 
-# Pytest
+# Pytest & Testing
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
-*.html
+coverage.xml
+*.cover
+
+# pytest-html reports
 report.html
-report-parallel.html
+reports/html-report.html
+reports/coverage/
+
+# pytest parallel
+.pytest_tmp/
 
 # Playwright
 playwright-report/
 test-results/
 screenshots/
 videos/
+traces/
 
-# IDE
+# 환경 변수 & 보안
+.env
+.env.local
+.env.*.local
+*.secret
+secrets/
+
+# PyCharm
 .idea/
+*.iml
+
+# VSCode
 .vscode/
+*.code-workspace
+
+# Vim
 *.swp
 *.swo
 *~
 
-# 환경변수
-.env
-.env.local
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# OS 생성 파일
+
+# macOS
 .DS_Store
-Thumbs.db
+.AppleDouble
+.LSOverride
 
-# Logs
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*
+
+# 로그 파일
 *.log
+logs/
+*.log.*
+
+# pytest 로그
+reports/pytest.log
+
+# Reports & Screenshots
+reports/screenshots/
+reports/*.html
+reports/*.xml
+
+# 임시 파일
+*.tmp
+*.temp
+*.bak
+*.swp
+*~.nib

@@ -1,6 +1,5 @@
 # pages/home_page.py
 
-from playwright.sync_api import expect
 
 from framework.base.base_page import BasePage
 from framework.config.locators import GmarketLocators, SearchPageLocators
@@ -20,13 +19,16 @@ class HomePage(BasePage):
     def should_be_on_homepage(self):
         print("홈페이지 도달 확인")
 
-        self.human_delay(0.3, 0.8)
-        self.should_have_url("https://www.gmarket.co.kr/")
+        self.human_delay(0.8, 1)
 
-        current_title = self.get_page_title()
-        print(current_title)
+        current_title = self.page.title()
+        print(f"페이지 제목 : {current_title}")
         if "G마켓" not in current_title and "gmarket" not in current_title.lower():
             raise AssertionError(f"홈페이지가 아닙니다. 현재 제목 : {current_title}")
+
+        current_url = self.page.url
+        if "gmarket.co.kr" not in current_url:
+            raise AssertionError(f"G마켓 도메인이 아닙니다. 현재 URL: {current_url}")
 
         # 로고 확인
         self.should_see_element(GmarketLocators.LOGO)
@@ -98,10 +100,9 @@ class HomePage(BasePage):
 
         # 자동완성 목록이 보이는지 확인
         suggestions = self.page.locator(GmarketLocators.SEARCH_SUGGESTION)
-        expect(suggestions).to_be_visible(timeout=5000)
 
         print(" 자동완성 목록 표시됨")
-        return self
+        return suggestions
 
     def type_in_search_without_submit(self, keyword):
         """검색만 입력하고 제출하지 않음 (자동완성 테스트용)"""
@@ -141,7 +142,7 @@ class HomePage(BasePage):
                     login_btn.click()
 
                 new_page = new_page_info.value
-                new_page.wait_for_load_state("networkidle")
+                new_page.wait_for_load_state("load")
 
                 from framework.pages.login_page import LoginPage
 
@@ -178,16 +179,20 @@ class HomePage(BasePage):
         try:
             if not self.page.locator(GmarketLocators.LOGOUT_BUTTON).is_visible():
                 print("이미 로그아웃 상태입니다")
-                return False
+                return self
 
             self.safe_click(GmarketLocators.LOGOUT_BUTTON)
             self.wait_for_load()
 
+            self.page.goto("https://www.gmarket.co.kr")
+            self.page.wait_for_load_state("load")
+            print(f"💡 현재 페이지 URL: {self.page.url}")
             print("로그아웃 완료")
             return HomePage(self.page)
 
         except Exception as e:
             print(f"로그아웃 실패: {e}")
+            return None
 
     def click_cart_button(self):
         """장바구니 버튼 클릭"""

@@ -3,6 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue)](https://www.python.org/)
 [![Playwright](https://img.shields.io/badge/Playwright-1.48.0-green)](https://playwright.dev/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Coverage](https://img.shields.io/badge/coverage-52%25-yellow)](https://github.com/Yangsun94/Gmarket_Project.git)
 
 Playwright를 활용한 G마켓 쇼핑몰 E2E 자동화 테스트 프레임워크입니다.
 
@@ -27,7 +28,7 @@ Playwright를 활용한 G마켓 쇼핑몰 E2E 자동화 테스트 프레임워�
 
 - **Playwright**를 활용한 웹 자동화 테스트 구현
 - **Page Object Model** 디자인 패턴 적용
-- **단위 테스트 / 통합 테스트** 작성
+- **단위 테스트** 작성
 - **GitHub Actions**를 통한 CI/CD 파이프라인 구축
 - **코드 품질 관리** 자동화 (Black, isort, Flake8, Pylint)
 
@@ -47,7 +48,172 @@ Playwright를 활용한 G마켓 쇼핑몰 E2E 자동화 테스트 프레임워�
 - 📸 **자동 스크린샷**: 테스트 실패 시 자동 캡처
 - 📊 **HTML 리포트**: 테스트 결과 시각화
 - 🔄 **재사용 가능한 구조**: Page Object Model 패턴
-- 🧪 **단위/통합 테스트**: 계층적 테스트 구조
+- 🧪 **단위 테스트**: 계층적 테스트 구조
+- ⚡ **병렬 실행**: pytest-xdist를 통한 빠른 테스트
+
+# 🏗️ 프로젝트 아키텍처
+
+## 전체 구조
+
+```mermaid
+graph TB
+    subgraph "테스트 레이어"
+        UT[단위 테스트<br/>test_base_page.py<br/>test_home_page.py<br/>test_search_page.py<br/>test_product_page.py<br/>test_cart_page.py<br/>test_login_page.py]
+    end
+
+    subgraph "페이지 객체 레이어 (POM)"
+        HP[HomePage]
+        SP[SearchPage]
+        PP[ProductPage]
+        CP[CartPage]
+        LP[LoginPage]
+    end
+
+    subgraph "기반 레이어"
+        BP[BasePage<br/>공통 메서드<br/>- 페이지 이동<br/>- 봇 탐지 우회<br/>- 스크롤<br/>- 검증]
+        LC[Locators<br/>모든 셀렉터<br/>- GmarketLocators<br/>- SearchPageLocators<br/>- ProductPageLocators<br/>- CartPageLocators<br/>- LoginPageLocators]
+    end
+
+    subgraph "설정 레이어"
+        CF[conftest.py<br/>- 브라우저 설정<br/>- Fixture<br/>- logged_in_context<br/>- logged_in_page]
+        PI[pytest.ini<br/>- 테스트 옵션<br/>- 마커 설정]
+        ENV[.env<br/>환경 변수]
+    end
+
+    subgraph "실행 환경"
+        PW[Playwright<br/>브라우저 자동화]
+        GM[G마켓 웹사이트]
+    end
+
+    UT --> HP
+    UT --> SP
+    UT --> PP
+    UT --> CP
+    UT --> LP
+
+    HP --> BP
+    SP --> BP
+    PP --> BP
+    CP --> BP
+    LP --> BP
+
+    HP --> LC
+    SP --> LC
+    PP --> LC
+    CP --> LC
+    LP --> LC
+
+    CF --> UT
+    PI --> UT
+    ENV --> CF
+
+    BP --> PW
+    PW --> GM
+
+    style UT fill:#e1f5ff
+    style HP fill:#fff4e1
+    style SP fill:#fff4e1
+    style PP fill:#fff4e1
+    style CP fill:#fff4e1
+    style LP fill:#fff4e1
+    style BP fill:#f0f0f0
+    style LC fill:#f0f0f0
+    style CF fill:#e8f5e9
+    style PI fill:#e8f5e9
+    style ENV fill:#e8f5e9
+    style PW fill:#fce4ec
+    style GM fill:#fce4ec
+```
+
+## Page Object Model 패턴
+
+```mermaid
+classDiagram
+    BasePage <|-- HomePage
+    BasePage <|-- SearchPage
+    BasePage <|-- ProductPage
+    BasePage <|-- CartPage
+    BasePage <|-- LoginPage
+
+    class BasePage {
+        +page: Page
+        +goto()
+        +wait_for_load()
+        +safe_click()
+        +safe_type()
+        +human_delay()
+        +should_see_element()
+        +scroll_smoothly()
+        +take_screenshot()
+    }
+
+    class HomePage {
+        +should_be_on_home_page()
+        +search_product()
+        +search_with_button()
+        +click_login_button()
+        +is_logged_in()
+        +logout()
+        +click_logo()
+        +navigate_to_category()
+        +get_gnb_items()
+    }
+
+    class SearchPage {
+        +should_be_on_search_page()
+        +get_search_results()
+        +click_product_by_index()
+        +click_product_by_name()
+        +apply_price_filter()
+        +apply_brand_filter()
+        +sort_by()
+        +has_results()
+        +get_no_result_message()
+        +click_logo()
+    }
+
+    class ProductPage {
+        +should_be_on_product_page()
+        +get_product_title()
+        +get_product_price()
+        +get_product_rating()
+        +get_product_reviews()
+        +add_to_cart()
+        +select_quantity()
+        +buy_now()
+        +click_logo()
+        +click_login_button()
+    }
+
+    class CartPage {
+        +should_be_on_cart_page()
+        +get_cart_items()
+        +remove_item()
+        +clear_cart()
+        +update_quantity()
+        +get_total_price()
+        +click_logo()
+        +proceed_to_checkout()
+        +click_login_button()
+        +logout()
+    }
+
+    class LoginPage {
+        +should_be_on_login_page()
+        +login()
+        +enter_username()
+        +enter_password()
+        +click_login_button()
+        +get_error_message()
+        +is_error_displayed()
+        +click_find_id()
+        +click_find_password()
+        +click_signup()
+        +is_logged_in()
+        +click_logo()
+        +logout()
+    }
+```
 
 ## 🛠 기술 스택
 
@@ -58,6 +224,8 @@ Playwright를 활용한 G마켓 쇼핑몰 E2E 자동화 테스트 프레임워�
 
 ### Testing
 - **pytest-html**: HTML 테스트 리포트 생성
+- **pytest-xdist**: 병렬 테스트 실행
+- **pytest-playwright**: Playwright pytest 플러그인
 
 ### Code Quality
 - **Black**: 코드 포맷터
@@ -76,33 +244,35 @@ Playwright를 활용한 G마켓 쇼핑몰 E2E 자동화 테스트 프레임워�
 gmarket-automation/
 ├── .github/
 │   └── workflows/
-│       └── quality-check.yml    # CI/CD 파이프라인
+│       └── quality-check.yml      # CI/CD 파이프라인
 ├── framework/
 │   ├── base/
-│   │   └── base_page.py         # 모든 페이지의 베이스 클래스
+│   │   └── base_page.py           # 모든 페이지의 베이스 클래스 (18개 메서드)
 │   ├── config/
-│   │   └── locators.py          # 모든 페이지 Locator 정의
+│   │   └── locators.py            # 모든 페이지 Locator 정의 (5개 클래스)
 │   └── pages/
-│       ├── home_page.py         # 홈페이지
-│       ├── search_page.py       # 검색 페이지
-│       ├── product_page.py      # 상품 상세 페이지
-│       ├── cart_page.py         # 장바구니 페이지
-│       └── login_page.py        # 로그인 페이지
+│       ├── home_page.py           # 홈페이지 (9개 메서드)
+│       ├── search_page.py         # 검색 페이지 (11개 메서드)
+│       ├── product_page.py        # 상품 상세 페이지 (11개 메서드)
+│       ├── cart_page.py           # 장바구니 페이지 (11개 메서드)
+│       └── login_page.py          # 로그인 페이지 (13개 메서드)
 ├── tests/
-│   ├── test_integration.py      # 통합 테스트 (E2E)
-│   ├── test_homepage.py         # HomePage 단위 테스트
-│   ├── test_searchpage.py       # SearchPage 단위 테스트
-│   ├── test_productpage.py      # ProductPage 단위 테스트
-│   └── test_cartpage.py         # CartPage 단위 테스트
-├── reports/                     # 테스트 리포트 저장 폴더
-├── .env                         # 환경 변수 (git 제외)
-├── .env.example                 # 환경 변수 예시
-├── .gitignore                   # Git 제외 파일
-├── .pre-commit-config.yaml      # pre-commit 설정
-├── conftest.py                  # pytest 설정 및 fixture
-├── pytest.ini                   # pytest 옵션 설정
-├── requirements.txt             # 프로젝트 의존성
-└── README.md                    # 프로젝트 문서
+│   └── unit/                      # 단위 테스트
+│       ├── test_base_page.py      # BasePage 단위 테스트 (18개)
+│       ├── test_home_page.py      # HomePage 단위 테스트 (17개)
+│       ├── test_search_page.py    # SearchPage 단위 테스트 (24개)
+│       ├── test_product_page.py   # ProductPage 단위 테스트 (11개)
+│       ├── test_cart_page.py      # CartPage 단위 테스트 (30개)
+│       └── test_login_page.py     # LoginPage 단위 테스트 (13개)
+├── reports/                       # 테스트 리포트 저장 폴더
+├── .env                           # 환경 변수 (git 제외)
+├── .env.example                   # 환경 변수 예시
+├── .gitignore                     # Git 제외 파일
+├── .pre-commit-config.yaml        # pre-commit 설정
+├── conftest.py                    # pytest 설정 및 fixture
+├── pytest.ini                     # pytest 옵션 설정
+├── requirements.txt               # 프로젝트 의존성
+└── README.md                      # 프로젝트 문서
 ```
 
 ## 🚀 설치 방법
@@ -155,42 +325,132 @@ pre-commit install
 
 ## 🧪 테스트 실행
 
-### 전체 테스트 실행
+### 전체 단위 테스트 실행
 
 ```bash
-pytest tests/ -v
+pytest tests/unit/ -v
 ```
 
-### 단위 테스트만 실행
+### 특정 테스트 파일만 실행
 
 ```bash
-pytest tests/test_homepage.py tests/test_searchpage.py tests/test_productpage.py tests/test_cartpage.py -v
-```
+# BasePage 테스트
+pytest tests/unit/test_base_page.py -v
 
-### 통합 테스트만 실행
+# HomePage 테스트
+pytest tests/unit/test_home_page.py -v
 
-```bash
-pytest tests/test_integration.py -v
+# 장바구니 테스트
+pytest tests/unit/test_cart_page.py -v
 ```
 
 ### 특정 마커로 실행
 
 ```bash
+# smoke 테스트만 (빠른 핵심 검증)
+pytest tests/unit/ -m smoke -v
+
 # 로그인 테스트만
-pytest tests/ -m login -v
+pytest tests/unit/ -m login -v
 
 # 장바구니 테스트만
-pytest tests/ -m cart -v
+pytest tests/unit/ -m cart -v
 
 # 느린 테스트 제외
-pytest tests/ -m "not slow" -v
+pytest tests/unit/ -m "not slow" -v
+
+# login 제외하고 병렬 실행
+pytest tests/unit/ -m "not login" -n auto
+```
+
+### pytest 마커 설명
+
+| 마커 | 설명 | 사용 예시 |
+|------|------|----------|
+| `smoke` | 핵심 기능 빠른 검증 | `pytest -m smoke` |
+| `regression` | 회귀 테스트 | `pytest -m regression` |
+| `login` | 로그인 필요 (순차 실행) | `pytest -m login` |
+| `cart` | 장바구니 관련 | `pytest -m cart` |
+| `slow` | 느린 테스트 | `pytest -m "not slow"` |
+
+### 병렬 테스트 실행
+
+```bash
+# 자동으로 CPU 코어 수만큼 병렬 실행
+pytest tests/unit/ -n auto
+
+# 특정 워커 수 지정 (4개)
+pytest tests/unit/ -n 4
+
+# login 테스트 제외하고 병렬 실행
+pytest tests/unit/ -m "not login" -n auto
 ```
 
 ### HTML 리포트 생성
 
 ```bash
-pytest tests/ --html=reports/report.html --self-contained-html
+pytest tests/unit/ --html=reports/report.html --self-contained-html
 ```
+
+### 테스트 커버리지 측정
+
+```bash
+# 커버리지 측정 + HTML 리포트
+pytest tests/unit/ --cov=framework --cov-report=html --cov-report=term
+
+# 리포트 확인
+open htmlcov/index.html  # macOS
+start htmlcov/index.html  # Windows
+xdg-open htmlcov/index.html  # Linux
+```
+
+**현재 테스트 커버리지: 52%** 🎯
+
+## 🎬 테스트 실행 결과
+
+### 📊 테스트 리포트
+![Test Report](demos/test_report.png)
+
+**전체 테스트 결과 요약:**
+- ✅ **122개 테스트 모두 통과**
+- 📂 **6개 테스트 파일** (test_base_page, test_home_page, test_search_page, test_product_page, test_cart_page, test_login_page)
+- ⚡ **병렬 실행 지원** (pytest-xdist)
+- 📸 **실패 시 자동 스크린샷 저장**
+- 📝 **상세 로그 및 에러 추적**
+
+---
+
+### 📈 코드 커버리지
+![Coverage Report](demos/coverage_report.png)
+
+**커버리지 측정 결과:**
+
+| 모듈 | Statements | Missing | Coverage |
+|------|-----------|---------|----------|
+| `base/base_page.py` | 102 | 41 | **60%** |
+| `pages/cart_page.py` | 184 | 95 | **48%** |
+| `pages/home_page.py` | 195 | 96 | **51%** |
+| `pages/login_page.py` | 47 | 17 | **64%** |
+| `pages/product_page.py` | 150 | 100 | **33%** |
+| `pages/search_page.py` | 192 | 105 | **45%** |
+| **TOTAL** | **938** | **454** | **52%** ⚠️ |
+
+---
+
+### 💡 리포트 직접 확인
+
+테스트 실행 후 생성되는 리포트를 직접 확인할 수 있습니다:
+
+```bash
+# 테스트 실행
+pytest tests/unit/ -v
+
+# HTML 리포트 열기
+start reports/html-report.html        # 테스트 결과
+start reports/coverage/index.html     # 커버리지 상세
+```
+
+---
 
 ## 🔄 CI/CD
 
@@ -222,17 +482,17 @@ pytest tests/ --html=reports/report.html --self-contained-html
 E2E 테스트는 로컬 환경에서만 실행 가능합니다:
 
 ```bash
-# 전체 테스트
-pytest tests/ -v
-
-# 통합 테스트
-pytest tests/integration/ -v
-
-# 단위 테스트
+# 전체 단위 테스트
 pytest tests/unit/ -v
 
-# 로그인 테스트
-pytest tests/ -m login -v
+# smoke 테스트 (빠른 검증)
+pytest tests/unit/ -m smoke -v
+
+# 병렬 실행 (login 제외)
+pytest tests/unit/ -m "not login" -n auto
+
+# 커버리지 측정
+pytest tests/unit/ --cov=framework --cov-report=html
 ```
 
 ## ✅ 코드 품질
@@ -272,6 +532,39 @@ git commit -m "feat: 새 기능 추가"
 pre-commit run --all-files
 ```
 
+## 🔧 주요 Fixtures (conftest.py)
+
+### 세션 스코프 로그인
+```python
+@pytest.fixture(scope="session")
+def logged_in_context(playwright):
+    """
+    세션 전체에서 재사용되는 로그인 컨텍스트
+    - Rate Limiting 문제 해결
+    - 로그인 상태 유지
+    """
+```
+
+### 로그인된 페이지
+```python
+@pytest.fixture
+def logged_in_page(logged_in_context):
+    """
+    로그인된 상태의 페이지 제공
+    - 로그인 테스트에서 사용
+    """
+```
+
+### 기본 페이지
+```python
+@pytest.fixture
+def page(context):
+    """
+    기본 Playwright 페이지
+    - 대부분의 테스트에서 사용
+    """
+```
+
 ## 📚 학습 내용
 
 이 프로젝트를 통해 다음을 학습했습니다:
@@ -282,14 +575,15 @@ pre-commit run --all-files
 - ✅ 봇 탐지 우회 기법 (자연스러운 딜레이, 랜덤 타이핑)
 
 ### 2. 테스트 설계
-- ✅ 단위 테스트와 통합 테스트 분리
+- ✅ 단위 테스트 작성 및 52% 커버리지 달성
 - ✅ pytest fixture를 활용한 테스트 격리
 - ✅ 테스트 마커를 통한 선택적 실행
+- ✅ 파라미터화 테스트로 다양한 시나리오 검증
+- ✅ Rate Limiting 문제 해결 (세션 스코프 fixture)
 
 ### 3. CI/CD 파이프라인
 - ✅ GitHub Actions 워크플로우 구축
 - ✅ 코드 품질 자동화 검증
-- ✅ 실무 제약사항 이해 및 대안 마련
 
 ### 4. 코드 품질 관리
 - ✅ Black, isort를 통한 일관된 코드 스타일 유지

@@ -18,7 +18,7 @@ class SearchPage(BasePage):
 
         # 검색 결과 컨테이너 확인
         self.should_see_element(SearchPageLocators.SEARCH_CONTAINER)
-        self.human_delay(0.3, 0.8)
+        self.human_delay(0.5, 1)
 
         if self.page.locator(SearchPageLocators.NO_RESULT).is_visible():
             print("검색 결과가 없습니다")
@@ -117,11 +117,13 @@ class SearchPage(BasePage):
                 self.wait_for_load()
 
                 print("가격 적용 완료")
+                return self
             else:
                 print("가격 필터 옵션을 찾을 수 없습니다")
 
         except Exception as e:
             print(f"가격 필터 적용 실패 : {e}")
+            return self
 
     def sort_by_price_low_to_high(self):
         try:
@@ -190,7 +192,7 @@ class SearchPage(BasePage):
                 return titles, False
         else:
             print("검색 결과가 없습니다")
-            return False
+            return [], False
 
     def click_logo(self):
         print("쇼핑 계속하기")
@@ -266,6 +268,7 @@ class SearchPage(BasePage):
 
         except Exception as e:
             print(f"로그아웃 실패: {e}")
+            return None
 
     def click_cart_button(self):
         """장바구니 버튼 클릭"""

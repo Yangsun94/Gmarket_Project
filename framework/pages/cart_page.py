@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import expect
 
 from framework.base.base_page import BasePage
@@ -17,7 +19,7 @@ class CartPage(BasePage):
             print(f"장바구니 페이지 URL 확인 : {current_url}")
 
         self.should_see_element(CartPageLocators.CART_CONTAINER)
-        self.human_delay(0.3, 0.8)
+        self.human_delay(0.5, 0.8)
 
         print("장바구니 페이지 확인 완료")
         return self
@@ -73,8 +75,10 @@ class CartPage(BasePage):
             self.human_delay(1, 2)
             print(f"{index}번째 상품 제거 완료")
             return True
+
         except Exception as e:
             print(f"상품 제거 실패: {e}")
+            return False
 
     def clear_cart(self):
         print("장바구니 전체 비우기")
@@ -88,7 +92,7 @@ class CartPage(BasePage):
             self.human_delay(1, 2)
 
             # 다이얼로그 자동 수락 설정
-            self.page.on("dialog", lambda dialog: dialog.accept())
+            self.page.once("dialog", lambda dialog: dialog.accept())
 
             clear_btn = self.page.locator(CartPageLocators.ITEM_REMOVE_ALL)
             clear_btn.click()
@@ -104,9 +108,12 @@ class CartPage(BasePage):
     def update_quantity(self, index, quantity):
         print(f"{index}번째 상품을 {quantity}개로 변경")
 
+        dialog_occurred = [False]
+        self.page.on("dialog", lambda dialog: [dialog.accept(), dialog_occurred.__setitem__(0, True)])
+
         try:
             items = self.get_cart_items()
-            if len(items) < index:
+            if len(items) < index or index == 0:
                 raise IndexError(f"변경 할 수 없습니다: {index}번째 상품이 없음")
 
             quantity_btn = self.page.locator(CartPageLocators.QUANTITY)
@@ -116,17 +123,21 @@ class CartPage(BasePage):
             quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
             print(f"현재 수량: {quantity_value}, 목표 수량: {quantity}")
 
-            while quantity_value < quantity:
+            while quantity_value < quantity and not dialog_occurred[0]:
                 quantity_plus.nth(index - 1).click()
                 self.human_delay(1, 2)
                 quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
 
-            while quantity_value > quantity:
+            while quantity_value > quantity and not dialog_occurred[0]:
                 quantity_minus.nth(index - 1).click()
                 self.human_delay(1, 2)
                 quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
 
-            print(f"수량 변경 완료: {quantity_value}")
+            if dialog_occurred[0]:
+                self.page.wait_for_timeout(1000)
+                print(f"수량을 변경하지 못합니다 {quantity_value}")
+            else:
+                print(f"수량 변경 완료: {quantity_value}")
 
             return True
 
@@ -152,7 +163,9 @@ class CartPage(BasePage):
                 f"=총 가격: {total_price.inner_text()}"
             )
 
-            return total_price.inner_text()
+            int_total_price = int(re.sub(r"[^\d]", "", total_price.inner_text()))
+
+            return int_total_price
 
         except Exception as e:
             print(f"총 금액 확인 실패: {e}")
@@ -188,6 +201,8 @@ class CartPage(BasePage):
             self.page.wait_for_url("**/checkout**", timeout=15000)
             print("결제 페이지 이동 완료")
             self.human_delay(0.3, 0.8)
+
+            return self
 
         except Exception as e:
             print(f"결제 페이지 이동 실패: {e}")

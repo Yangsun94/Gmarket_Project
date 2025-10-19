@@ -12,7 +12,7 @@ class ProductPage(BasePage):
 
         # 상품 정보 컨테이너 있는지 확인
         self.should_see_element(ProductPageLocators.PRODUCT_CONTAINER)
-        self.human_delay(0.3, 0.8)
+        self.human_delay(1, 2)
 
         print("상품 상세 페이지 확인 완료")
         return self
@@ -75,9 +75,11 @@ class ProductPage(BasePage):
             self.human_delay(0.5, 1)
 
             print("페이지 탐색 완료")
+            return self
 
         except Exception as e:
             print(f"페이지 탐색 실패 : {e}")
+            return self
 
     def add_to_cart(self, quantity=1):
         print(f"수량 {quantity}개로 장바구니에 담기")
@@ -232,7 +234,4 @@ class ProductPage(BasePage):
 
         except Exception as e:
             print(f"로그아웃 실패: {e}")
-
-    def goto_product(self):
-        self.page.goto("https://item.gmarket.co.kr/Item?goodscode=4070837165")
-        return self
+            return None
