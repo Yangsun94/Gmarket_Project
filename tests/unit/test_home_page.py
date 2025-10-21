@@ -91,8 +91,33 @@ class TestHomePageNavigation:
         homepage.visit()
         homepage.should_be_on_homepage()
 
+        result = homepage.click_login_button(test_account["id"], test_account["password"])
+        assert result is not None, "로그인 실패"
+        assert isinstance(result, HomePage), "HomePage 객체가 반환되지 않았습니다"
+
+    # click_login_button(username,password) 테스트(잘못된 계정으로 로그인)
+    @pytest.mark.login
+    def test_invalid_login_homepage(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        result = homepage.click_login_button("wrong_id", "wrong_password")
+
+        assert not result, "로그인에 성공해서는 안됩니다"
+
+    #  click_login_button(username,password) 테스트(로그인 상태)
+    @pytest.mark.login
+    def test_login_from_login_homepage(self, page, test_account):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
         homepage.click_login_button(test_account["id"], test_account["password"])
-        assert not homepage.is_login_button_visible(), "로그인 버튼이 여전히 표시됩니다"
+
+        result = homepage.click_login_button(test_account["id"], test_account["password"])
+
+        assert result is None, "로그인 실패"
 
     # 로그아웃 테스트
     @pytest.mark.login
@@ -106,6 +131,17 @@ class TestHomePageNavigation:
         homepage = homepage.logout()
         assert homepage is not None, "로그아웃 실패로 homepage가 None입니다"
         assert homepage.is_login_button_visible(), "로그인 버튼이 표시되지 않습니다"
+
+    # logout() 테스트(로그아웃 상태에서)
+    @pytest.mark.login
+    def test_logout_from_logout_homepage(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        returned_homepage = homepage.logout()
+
+        assert not returned_homepage, "로그아웃 성공"
 
 
 class TestHomePageUserBehavior:

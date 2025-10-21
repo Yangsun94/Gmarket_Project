@@ -20,66 +20,56 @@ class ProductPage(BasePage):
     def get_product_info(self):
         print("상품 정보 수집")
 
-        try:
-            # 상품명
-            title_element = self.page.locator(ProductPageLocators.PRODUCT_TITLE)
-            print(title_element.is_visible())
-            title = title_element.inner_text()
+        # 상품명
+        title_element = self.page.locator(ProductPageLocators.PRODUCT_TITLE)
+        print(title_element.is_visible())
+        title = title_element.inner_text()
 
-            # 가격
-            price_element = self.page.locator(ProductPageLocators.PRODUCT_PRICE)
+        # 가격
+        price_element = self.page.locator(ProductPageLocators.PRODUCT_PRICE)
 
-            if price_element.count() >= 2:
-                price = price_element.nth(1).inner_text()
-            else:
-                price = price_element.nth(0).inner_text()
+        if price_element.count() >= 2:
+            price = price_element.nth(1).inner_text()
+        else:
+            price = price_element.nth(0).inner_text()
 
-            # 배송 정보
-            shipping_element = self.page.locator(ProductPageLocators.SHIPPING_INFO)
+        # 배송 정보
+        shipping_element = self.page.locator(ProductPageLocators.SHIPPING_INFO)
 
-            if shipping_element.count() >= 2:
-                shipping = shipping_element.nth(1).inner_text()
-            else:
-                shipping = shipping_element.nth(0).inner_text()
+        if shipping_element.count() >= 2:
+            shipping = shipping_element.nth(1).inner_text()
+        else:
+            shipping = shipping_element.nth(0).inner_text()
 
-            product_info = {
-                "title": title,
-                "price": price,
-                "shipping": shipping,
-            }
+        product_info = {
+            "title": title,
+            "price": price,
+            "shipping": shipping,
+        }
 
-            print(f" 상품명: {title[:50]}...")
-            print(f" 가격: {price}")
-            print(f" 배송: {shipping}")
+        print(f" 상품명: {title[:50]}...")
+        print(f" 가격: {price}")
+        print(f" 배송: {shipping}")
 
-            return product_info
-
-        except Exception as e:
-            print(f" 상품 정보 수집 실패: {e}")
-            return None
+        return product_info
 
     def scroll_and_explore(self):
         print("상품 페이지 탐색")
 
-        try:
-            # 페이지 중간까지 스크롤
-            self.page.evaluate("window.scrollTo(0, window.innerHeight)")
-            self.human_delay(1, 2)
+        # 페이지 중간까지 스크롤
+        self.page.evaluate("window.scrollTo(0, window.innerHeight)")
+        self.human_delay(1, 2)
 
-            # 페이지 하단까지 스크롤
-            self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            self.human_delay(1, 2)
+        # 페이지 하단까지 스크롤
+        self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        self.human_delay(1, 2)
 
-            # 페이지 상단까지 스크롤
-            self.page.evaluate("window.scrollTo(0, 0)")
-            self.human_delay(0.5, 1)
+        # 페이지 상단까지 스크롤
+        self.page.evaluate("window.scrollTo(0, 0)")
+        self.human_delay(0.5, 1)
 
-            print("페이지 탐색 완료")
-            return self
-
-        except Exception as e:
-            print(f"페이지 탐색 실패 : {e}")
-            return self
+        print("페이지 탐색 완료")
+        return self
 
     def add_to_cart(self, quantity=1):
         print(f"수량 {quantity}개로 장바구니에 담기")
@@ -150,16 +140,11 @@ class ProductPage(BasePage):
     def click_logo(self):
         print("쇼핑 계속하기")
 
-        try:
-            self.safe_click(ProductPageLocators.LOGO)
-            print("메인 페이지로 이동")
-            from framework.pages.home_page import HomePage
+        self.safe_click(ProductPageLocators.LOGO)
+        print("메인 페이지로 이동")
+        from framework.pages.home_page import HomePage
 
-            return HomePage(self.page)
-
-        except Exception as e:
-            print(f"로고 클릭 실패: {e}")
-            return False
+        return HomePage(self.page)
 
     def click_cart_button(self):
         """장바구니 버튼 클릭"""
@@ -176,7 +161,6 @@ class ProductPage(BasePage):
 
     def click_login_button(self, username, password):
         print("로그인 버튼 클릭")
-
         try:
             login_btn = self.page.locator(ProductPageLocators.LOGIN_BUTTON)
 
@@ -213,17 +197,13 @@ class ProductPage(BasePage):
                     return None
 
         except Exception as e:
-            print(f"로그인 실패: {e}")
+            print(f"❌ 로그인 실패: {e}")
             return None
 
     def logout(self):
         print("로그아웃 시도")
 
         try:
-            if not self.page.locator(ProductPageLocators.LOGOUT_BUTTON).is_visible():
-                print("이미 로그아웃 상태입니다")
-                return True
-
             self.safe_click(ProductPageLocators.LOGOUT_BUTTON)
             self.wait_for_load()
 

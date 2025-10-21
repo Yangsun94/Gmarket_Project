@@ -14,6 +14,16 @@ class TestSearchPageBasic:
         search_page = homepage.search_product("마우스")
         search_page.should_be_on_search_page()
 
+    def test_should_be_on_search_page_no_results(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("존재하지않는상품12345abcde")
+        result = search_page.should_be_on_search_page()
+
+        assert result is search_page
+
     # should_have_search_results(min_results=1) 테스트
     @pytest.mark.smoke
     @pytest.mark.parametrize("keyword,min_results", [("마우스", 1), ("키보드", 10000)])
@@ -39,7 +49,17 @@ class TestSearchPagePriceFilter:
         search_page = homepage.search_product("이어폰")
         search_page.should_be_on_search_page()
         search_page.apply_price_filter(min_price=min_price, max_price=max_price)
-        search_page.should_have_search_results()
+
+    # apply_price_filter() 테스트(검색 결과 없음)
+    @pytest.mark.slow
+    def test_apply_price_filter_no_search(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("쉣숍")
+        search_page.should_be_on_search_page()
+        search_page.apply_price_filter(min_price=5000, max_price=500000)
 
 
 class TestSearchPageSorting:
@@ -89,7 +109,7 @@ class TestSearchPageSorting:
 class TestSearchPageKeywordRelevance:
     # verify_search_keyword_in_results(keyword) 테스트
     @pytest.mark.smoke
-    @pytest.mark.parametrize("keyword", ["마우스", "아이폰", "뭭뤡"])
+    @pytest.mark.parametrize("keyword", ["타원", "무선 이어폰", "뭭뤡"])
     def test_search_keyword_relevance(self, page, keyword):
         homepage = HomePage(page)
         homepage.visit()
@@ -154,7 +174,7 @@ class TestSearchPageProductTitles:
         assert all(len(title) > 0 for title in titles), "빈 제목이 있습니다"
 
     # get_all_product_titles() 테스트(2)
-    @pytest.mark.parametrize("limit", [3, 5, 10])
+    @pytest.mark.parametrize("limit", [10, 11, 0])
     def test_get_all_product_titles_with_limit(self, page, limit):
         homepage = HomePage(page)
         homepage.visit()
@@ -207,7 +227,7 @@ class TestSearchPageProductTitles:
 
 class TestSearchPageProductInfo:
     #  get_product_title(index) 테스트
-    @pytest.mark.parametrize("index", [1, 2, 10000])
+    @pytest.mark.parametrize("index", [1, 0, 10000])
     def test_get_product_title_multiple(self, page, index):
         homepage = HomePage(page)
         homepage.visit()
@@ -264,7 +284,7 @@ class TestSearchPageProductInfo:
 class TestSearchPageClickProduct:
     # click_product_by_index(index) 테스트
     @pytest.mark.smoke
-    @pytest.mark.parametrize("index", [1, 2, 10000])
+    @pytest.mark.parametrize("index", [1, 0, 10000])
     def test_click_multiple_products(self, page, index):
         homepage = HomePage(page)
         homepage.visit()
@@ -330,6 +350,36 @@ class TestSearchPageLogin:
         # 로그인 상태에서도 검색 페이지 유지
         search_page.should_be_on_search_page()
 
+    # click_login_button(username,password) 테스트(잘못된 계정으로 로그인)
+    @pytest.mark.login
+    def test_invalid_login_search_page(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("포도")
+        search_page.should_be_on_search_page()
+
+        result = search_page.click_login_button("wrong_id", "wrong_password")
+
+        assert not result, "로그인에 성공해서는 안됩니다"
+
+    #  click_login_button(username,password) 테스트(로그인 상태)
+    @pytest.mark.login
+    def test_login_from_login_search_page(self, page, test_account):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("딸기")
+        search_page.should_be_on_search_page()
+
+        search_page.click_login_button(test_account["id"], test_account["password"])
+
+        result = search_page.click_login_button(test_account["id"], test_account["password"])
+
+        assert result is None, "로그인 실패"
+
     # logout() 테스트
     @pytest.mark.login
     def test_logout_from_search_page(self, page, test_account):
@@ -345,6 +395,20 @@ class TestSearchPageLogin:
         # 로그아웃 (홈페이지로 이동)
         home_page = search_page.logout()
         home_page.should_be_on_homepage()
+
+    # logout() 테스트(로그아웃 상태에서)
+    @pytest.mark.login
+    def test_logout_from_logout_search_page(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("밤")
+        search_page.should_be_on_search_page()
+
+        returned_searchpage = search_page.logout()
+
+        assert not returned_searchpage, "로그아웃 성공"
 
 
 class TestSearchPageNavigation:

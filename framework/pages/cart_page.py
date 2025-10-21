@@ -32,36 +32,32 @@ class CartPage(BasePage):
             cart_items = self.page.locator(CartPageLocators.CART_ITEMS)
             count = cart_items.count()
 
-            if count == 0:
-                print("장바구니가 비었습니다")
-                return items
-
             print(f"총 {count}개 상품 발견")
+            if count == 0:
+                raise "장바구니가 비었습니다"
 
             for i in range(count):
                 item = cart_items.nth(i)
-                try:
-                    title = item.locator(CartPageLocators.ITEM_TITLE).inner_text()
-                    price = item.locator(CartPageLocators.ITEM_PRICE).inner_text()
 
-                    items.append({"index": i + 1, "title": title, "price": price})
-                    print(f"{i+1}번째 상품, {title}, {price}")
+                title = item.locator(CartPageLocators.ITEM_TITLE).inner_text()
+                price = item.locator(CartPageLocators.ITEM_PRICE).inner_text()
 
-                except Exception as e:
-                    print(f"요소를 찾지 못했습니다: {e}")
+                items.append({"index": i + 1, "title": title, "price": price})
+                print(f"{i+1}번째 상품, {title}, {price}")
+
+            print(f"총 {len(items)}개 상품 정보 수집")
+            return items
 
         except Exception as e:
-            raise Exception(f"에러가 발생했습니다: {e}")
-
-        print(f"총 {len(items)}개 상품 정보 수집")
-        return items
+            print(f"상품정보를 가져오지 못했습니다 {e}")
+            return items
 
     def remove_item(self, index=1):
         print(f"{index}번째 상품 제거 시도")
 
         try:
             items = self.get_cart_items()
-            if len(items) < index:
+            if len(items) < index or index == 0:
                 raise IndexError(f"제거 할 수 없습니다: {index}번째 상품이 없음")
 
             # 다이얼로그 자동 수락 설정
@@ -83,30 +79,26 @@ class CartPage(BasePage):
     def clear_cart(self):
         print("장바구니 전체 비우기")
 
-        try:
-            checkbox = self.page.locator(CartPageLocators.CHECKBOX)
-            if not checkbox.is_visible():
-                print("장바구니가 이미 비어있습니다.")
-                return True
-            checkbox.check()
-            self.human_delay(1, 2)
+        checkbox = self.page.locator(CartPageLocators.CHECKBOX)
+        if not checkbox.is_visible():
+            print("장바구니가 이미 비어있습니다.")
+            return self
 
-            # 다이얼로그 자동 수락 설정
-            self.page.once("dialog", lambda dialog: dialog.accept())
+        checkbox.check()
+        self.human_delay(1, 2)
 
-            clear_btn = self.page.locator(CartPageLocators.ITEM_REMOVE_ALL)
-            clear_btn.click()
+        # 다이얼로그 자동 수락 설정
+        self.page.once("dialog", lambda dialog: dialog.accept())
 
-            self.human_delay(1, 2)
-            print("전체 삭제 완료")
-            return True
+        clear_btn = self.page.locator(CartPageLocators.ITEM_REMOVE_ALL)
+        clear_btn.click()
 
-        except Exception as e:
-            print(f"전체 삭제 실패: {e}")
-            return False
+        self.human_delay(1, 2)
+        print("전체 삭제 완료")
+        return self
 
-    def update_quantity(self, index, quantity):
-        print(f"{index}번째 상품을 {quantity}개로 변경")
+    def update_quantity(self, index: int, quantity: int):
+        print(f"{index}번째 상품을 {quantity}개 직접 입력으로 변경")
 
         dialog_occurred = [False]
         self.page.on("dialog", lambda dialog: [dialog.accept(), dialog_occurred.__setitem__(0, True)])
@@ -114,32 +106,34 @@ class CartPage(BasePage):
         try:
             items = self.get_cart_items()
             if len(items) < index or index == 0:
-                raise IndexError(f"변경 할 수 없습니다: {index}번째 상품이 없음")
+                raise IndexError(f"수량 변경 불가: {index}번째 상품이 없음")
 
-            quantity_btn = self.page.locator(CartPageLocators.QUANTITY)
-            quantity_plus = self.page.locator(CartPageLocators.QUANTITY_PLUS)
-            quantity_minus = self.page.locator(CartPageLocators.QUANTITY_MINUS)
-
-            quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
+            quantity_btn = self.page.locator(CartPageLocators.QUANTITY).nth(index - 1)
+            quantity_value = int(quantity_btn.get_attribute("value"))
             print(f"현재 수량: {quantity_value}, 목표 수량: {quantity}")
 
-            while quantity_value < quantity and not dialog_occurred[0]:
-                quantity_plus.nth(index - 1).click()
-                self.human_delay(1, 2)
-                quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
+            if quantity_value == quantity:
+                print(f"✅ 이미 목표 수량입니다: {quantity}")
+                return True
 
-            while quantity_value > quantity and not dialog_occurred[0]:
-                quantity_minus.nth(index - 1).click()
-                self.human_delay(1, 2)
-                quantity_value = int(quantity_btn.nth(index - 1).get_attribute("value"))
+            quantity_btn.click(click_count=3)
+            self.human_delay(0.2, 0.3)
+
+            quantity_btn.fill(str(quantity))
+            self.human_delay(0.3, 0.5)
+
+            self.page.locator("body").click(position={"x": 100, "y": 100})
+            self.human_delay(0.5, 1)
+
+            self.page.wait_for_timeout(1000)  # 서버 업데이트 대기
+            new_quantity = int(quantity_btn.get_attribute("value"))
 
             if dialog_occurred[0]:
-                self.page.wait_for_timeout(1000)
-                print(f"수량을 변경하지 못합니다 {quantity_value}")
-            else:
-                print(f"수량 변경 완료: {quantity_value}")
-
-            return True
+                print(f"수량 변경 실패 (다이얼로그): 현재 {new_quantity}")
+                return False
+            if new_quantity == quantity:
+                print(f"수량 변경 완료: {quantity_value} → {new_quantity}")
+                return True
 
         except Exception as e:
             print(f"수량 변경 실패: {e}")
@@ -174,39 +168,29 @@ class CartPage(BasePage):
     def click_logo(self):
         print("쇼핑 계속하기")
 
-        try:
-            self.safe_click(CartPageLocators.LOGO)
-            print("로고 클릭으로 홈페이지로 이동")
-            from framework.pages.home_page import HomePage
+        self.safe_click(CartPageLocators.LOGO)
+        print("로고 클릭으로 홈페이지로 이동")
+        from framework.pages.home_page import HomePage
 
-            return HomePage(self.page)
-
-        except Exception as e:
-            print(f"로고 클릭 실패: {e}")
-            return None
+        return HomePage(self.page)
 
     def proceed_to_checkout(self):
         print("결제 페이지로 이동")
 
-        try:
-            checkout_btn = self.page.locator(CartPageLocators.CHECKOUT_BUTTON)
+        checkout_btn = self.page.locator(CartPageLocators.CHECKOUT_BUTTON)
 
-            expect(checkout_btn).to_be_visible()
-            expect(checkout_btn).to_be_enabled()
+        expect(checkout_btn).to_be_visible()
+        expect(checkout_btn).to_be_enabled()
 
-            checkout_btn.scroll_into_view_if_needed()
-            self.human_delay(1, 2)
-            checkout_btn.click()
+        checkout_btn.scroll_into_view_if_needed()
+        self.human_delay(1, 2)
+        checkout_btn.click()
 
-            self.page.wait_for_url("**/checkout**", timeout=15000)
-            print("결제 페이지 이동 완료")
-            self.human_delay(0.3, 0.8)
+        self.page.wait_for_url("**/checkout**", timeout=15000)
+        print("결제 페이지 이동 완료")
+        self.human_delay(0.3, 0.8)
 
-            return self
-
-        except Exception as e:
-            print(f"결제 페이지 이동 실패: {e}")
-            return None
+        return self
 
     def click_login_button(self, username, password):
         print("로그인 버튼 클릭")
@@ -254,10 +238,6 @@ class CartPage(BasePage):
         print("로그아웃 시도")
 
         try:
-            if not self.page.locator(CartPageLocators.LOGOUT_BUTTON).is_visible():
-                print("이미 로그아웃 상태입니다")
-                return True
-
             self.safe_click(CartPageLocators.LOGOUT_BUTTON)
             self.wait_for_load()
 

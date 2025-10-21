@@ -122,7 +122,7 @@ class TestCartPageQuantity:
         homepage = HomePage(logged_in_page)
         homepage.visit().should_be_on_homepage()
 
-        search_page = homepage.search_product("이어폰")
+        search_page = homepage.search_product("헤드셋")
         search_page.should_be_on_search_page()
 
         product_page = search_page.click_product_by_index(1)
@@ -141,8 +141,7 @@ class TestCartPageQuantity:
         homepage = HomePage(logged_in_page)
         homepage.visit().should_be_on_homepage()
 
-        # 상품 3개 추가
-        search_page = homepage.search_product("이어폰")
+        search_page = homepage.search_product("지갑")
         search_page.should_be_on_search_page()
 
         product_page = search_page.click_product_by_index(1)
@@ -170,7 +169,7 @@ class TestCartPageQuantity:
         homepage = cart_page.click_logo()
         homepage.should_be_on_homepage()
 
-        search_page = homepage.search_product("마우스")
+        search_page = homepage.search_product("디퓨저")
         search_page.should_be_on_search_page()
 
         product_page = search_page.click_product_by_index(1)
@@ -182,7 +181,34 @@ class TestCartPageQuantity:
 
         # 수량 0으로 설정
         result = cart_page.update_quantity(1, 0)
-        assert result
+        assert not result
+
+    # update_quantity(index, quantity) 테스트(quantity = 1000)
+    @pytest.mark.slow
+    def test_over_quantity_handling(self, logged_in_page):
+        homepage = HomePage(logged_in_page)
+        homepage.visit().should_be_on_homepage()
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+        cart_page.clear_cart()
+
+        homepage = cart_page.click_logo()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("컵")
+        search_page.should_be_on_search_page()
+
+        product_page = search_page.click_product_by_index(1)
+        product_page.should_be_on_product_page()
+        product_page.add_to_cart(3)
+
+        cart_page = product_page.click_cart_button()
+        cart_page.should_be_on_cart_page()
+
+        # 수량 1000으로 설정
+        result = cart_page.update_quantity(1, 1000)
+        assert not result
 
     # update_quantity(index, quantity) 테스트(index = 0)
     @pytest.mark.slow
@@ -197,7 +223,7 @@ class TestCartPageQuantity:
         homepage = cart_page.click_logo()
         homepage.should_be_on_homepage()
 
-        search_page = homepage.search_product("마우스")
+        search_page = homepage.search_product("마우스패드")
         search_page.should_be_on_search_page()
 
         product_page = search_page.click_product_by_index(1)
@@ -224,7 +250,7 @@ class TestCartPageQuantity:
         homepage = cart_page.click_logo()
         homepage.should_be_on_homepage()
 
-        search_page = homepage.search_product("마우스")
+        search_page = homepage.search_product("양말")
         search_page.should_be_on_search_page()
 
         product_page = search_page.click_product_by_index(1)
@@ -240,6 +266,18 @@ class TestCartPageQuantity:
 
 
 class TestCartPageRemove:
+    # clear cart() 테스트(빈 장바구니상태)
+    def test_clear_cart(self, page):
+        homepage = HomePage(page)
+        homepage.visit().should_be_on_homepage()
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+        cart_page.clear_cart()
+        # 한번 더
+        result = cart_page.clear_cart()
+        assert isinstance(result, CartPage)
+
     # remove_item(index) 테스트
     @pytest.mark.slow
     def test_remove_single_item(self, logged_in_page):
@@ -367,7 +405,7 @@ class TestCartPageRemove:
 
     # remove_item(index) 테스트(없는 인덱스)
     @pytest.mark.slow
-    def test_invalid_index_remove(self, logged_in_page):
+    def test_over_index_remove(self, logged_in_page):
         homepage = HomePage(logged_in_page)
         homepage.visit().should_be_on_homepage()
 
@@ -392,9 +430,36 @@ class TestCartPageRemove:
 
         # 존재하지 않는 인덱스로 삭제 시도
         result = cart_page.remove_item(99)
+        assert not result, "존재하지 않는 인덱스 삭제는 실패해야 합니다"
 
-        # False 반환 또는 예외 발생 (구현에 따라)
-        assert result is False or result is None, "존재하지 않는 인덱스 삭제는 실패해야 합니다"
+    # remove_item(index) 테스트(인덱스 = 0)
+    @pytest.mark.slow
+    def test_zero_index_remove(self, logged_in_page):
+        homepage = HomePage(logged_in_page)
+        homepage.visit().should_be_on_homepage()
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+        cart_page.clear_cart()
+        homepage = cart_page.click_logo()
+
+        # 상품 1개만 추가
+        search_page = homepage.search_product("이어폰")
+        search_page.should_be_on_search_page()
+
+        product_page = search_page.click_product_by_index(1)
+        product_page.should_be_on_product_page()
+        product_page.add_to_cart(1)
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+
+        items = cart_page.get_cart_items()
+        assert len(items) == 1, "1개 상품이 있어야 합니다"
+
+        # 존재하지 않는 인덱스로 삭제 시도
+        result = cart_page.remove_item(0)
+        assert not result, "0번째 인덱스는 존재하지 않아야합니다"
 
 
 class TestCartPagePrice:
@@ -611,6 +676,36 @@ class TestCartPageLogin:
         assert result is not None, "로그인 실패"
         assert isinstance(result, CartPage), "CartPage 객체가 반환되지 않았습니다"
 
+    # click_login_button(username,password) 테스트(잘못된 계정으로 로그인)
+    @pytest.mark.login
+    def test_invalid_login_cart_page(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+
+        result = cart_page.click_login_button("wrong_id", "wrong_password")
+
+        assert not result, "로그인에 성공해서는 안됩니다"
+
+    #  click_login_button(username,password) 테스트(로그인 상태)
+    @pytest.mark.login
+    def test_login_from_login_cart_page(self, page, test_account):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        homepage.click_login_button(test_account["id"], test_account["password"])
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+
+        result = cart_page.click_login_button(test_account["id"], test_account["password"])
+
+        assert result is None, "로그인 실패"
+
     # logout() 테스트
     @pytest.mark.login
     def test_logout_from_cart_page(self, page, test_account):
@@ -623,7 +718,21 @@ class TestCartPageLogin:
 
         cart_page.click_login_button(test_account["id"], test_account["password"])
 
+        returned_cartpage = cart_page.logout()
+
+        assert returned_cartpage is not None, "로그아웃 실패"
+        assert isinstance(returned_cartpage, HomePage), "HomePage 객체가 반환되지 않았습니다"
+
+    # logout() 테스트(로그아웃 상태에서)
+    @pytest.mark.login
+    def test_logout_from_logout_cart_page(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        cart_page = homepage.click_cart_button()
+        cart_page.should_be_on_cart_page()
+
         returned_homepage = cart_page.logout()
 
-        assert returned_homepage is not None, "로그아웃 실패"
-        assert isinstance(returned_homepage, HomePage), "HomePage 객체가 반환되지 않았습니다"
+        assert not returned_homepage, "로그아웃 성공"

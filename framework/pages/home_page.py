@@ -121,15 +121,10 @@ class HomePage(BasePage):
     def click_logo(self):
         print("쇼핑 계속하기")
 
-        try:
-            self.safe_click(SearchPageLocators.LOGO)
-            self.should_see_element("#comp_24948199")
-            print("추천픽 페이지로 이동")
-            return True
-
-        except Exception as e:
-            print(f"로고 클릭 실패: {e}")
-            return False
+        self.safe_click(SearchPageLocators.LOGO)
+        self.should_see_element(".top_banner")
+        print("추천픽 페이지로 이동")
+        return True
 
     def click_login_button(self, username, password):
         print("로그인 버튼 클릭")
@@ -177,10 +172,6 @@ class HomePage(BasePage):
         print("로그아웃 시도")
 
         try:
-            if not self.page.locator(GmarketLocators.LOGOUT_BUTTON).is_visible():
-                print("이미 로그아웃 상태입니다")
-                return self
-
             self.safe_click(GmarketLocators.LOGOUT_BUTTON)
             self.wait_for_load()
 
@@ -236,49 +227,30 @@ class HomePage(BasePage):
         """카테고리에 마우스 올려보기"""
         print("카테고리 메뉴 hover")
 
-        try:
-            category_menu = self.page.locator(GmarketLocators.CATEGORY_MENU)
-            count = category_menu.count()
-            print(f"카테고리 메뉴 개수: {count}")
+        category_menu = self.page.locator(GmarketLocators.CATEGORY_MENU)
+        count = category_menu.count()
+        print(f"카테고리 메뉴 개수: {count}")
 
-            # 각 요소를 개별적으로 확인
-            for i in range(count):
-                element = category_menu.nth(i)
-                try:
-                    # 각 요소의 정보 출력
-                    text_content = element.text_content()
-                    is_visible = element.is_visible()
-                    print(f"Element {i}: visible={is_visible}, text='{text_content[:50]}...'")
+        # 각 요소를 개별적으로 확인
+        for i in range(count):
+            element = category_menu.nth(i)
 
-                    # 첫 번째로 보이는 요소에 hover
-                    if is_visible:  # 또는 원하는 조건
-                        element.hover()
-                        self.human_delay(1, 2)
-                        print(f"  ✓ 카테고리 메뉴 hover 완료 (index: {i})")
-                except Exception as e:
-                    print(f"Element {i} 처리 중 오류: {e}")
-                    continue
-            else:
-                print("  ️ hover 가능한 카테고리 메뉴를 찾을 수 없음")
+            # 각 요소의 정보 출력
+            text_content = element.text_content()
+            is_visible = element.is_visible()
+            print(f"Element {i}: visible={is_visible}, text='{text_content[:50]}...'")
 
-        except Exception as e:
-            print(f"카테고리 hover 중 오류: {e}")
+            # 첫 번째로 보이는 요소에 hover
+            if is_visible:  # 또는 원하는 조건
+                element.hover()
+                self.human_delay(0.5, 1)
+                print(f"  ✓ 카테고리 메뉴 hover 완료 (index: {i})")
 
         return self
 
     # ==============================================
     # 유틸리티 메서드
     # ==============================================
-
-    def get_search_input_placeholder(self):
-        """검색창의 placeholder 텍스트 가져오기"""
-        search_input = self.page.locator(GmarketLocators.SEARCH_INPUT)
-        try:
-            placeholder = search_input.get_attribute("placeholder")
-            print(f"🔍 검색창 placeholder: '{placeholder}'")
-            return placeholder
-        except Exception as e:
-            print(f"요소 찾기 실패 : {e}")
 
     def is_login_button_visible(self):
         """로그인 버튼이 보이는지 확인 (로그인 상태 체크용)"""
@@ -311,17 +283,12 @@ class HomePage(BasePage):
     #  테스트 지원 메서드
     # ==============================================
 
-    def capture_homepage_screenshot(self, name="homepage"):
-        """홈페이지 스크린샷 촬영"""
-        screenshot_name = f"{name}_{self.page.url.replace('https://', '').replace('/', '_')}"
-        return self.take_screenshot(screenshot_name)
-
     def verify_no_errors(self):
         """페이지 오류가 없는지 확인"""
         print("페이지 오류 확인")
 
         # 일반적인 오류 메시지들 확인
-        error_messages = ["error", "오류", "문제가 발생", "접속 불가", "service unavailable", "502", "503", "404"]
+        error_messages = ["error", "오류", "문제가 발생", "접속 불가", "service unavailable"]
 
         page_text = self.page.locator("body").inner_text().lower()
 

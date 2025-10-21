@@ -64,12 +64,9 @@ class LoginPage(BasePage):
 
             logout_btn.wait_for(state="visible", timeout=10000)
 
-            # 한 번 더 확인
             if logout_btn.is_visible():
                 print("로그인 상태입니다")
-            else:
-                print("로그아웃 버튼이 보이지 않음")
-            return logout_btn.is_visible()
+                return True
 
         except Exception as e:
             print(f"❌ 로그인 상태 확인 실패: {e}")

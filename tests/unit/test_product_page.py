@@ -162,6 +162,42 @@ class TestProductPageNavigation:
         assert result is not None, "로그인 실패"
         assert isinstance(result, ProductPage), "ProductPage 객체가 반환되지 않았습니다"
 
+    # click_login_button(username,password) 테스트(잘못된 계정으로 로그인)
+    @pytest.mark.login
+    def test_invalid_login_product_page(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("게이밍마우스")
+        search_page.should_be_on_search_page()
+
+        product_page = search_page.click_product_by_index(1)
+        product_page.should_be_on_product_page()
+
+        result = product_page.click_login_button("wrong_id", "wrong_password")
+
+        assert not result, "로그인에 성공해서는 안됩니다"
+
+    #  click_login_button(username,password) 테스트(로그인 상태)
+    @pytest.mark.login
+    def test_login_from_login_product_page(self, page, test_account):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("게이밍마우스")
+        search_page.should_be_on_search_page()
+
+        product_page = search_page.click_product_by_index(1)
+        product_page.should_be_on_product_page()
+
+        product_page.click_login_button(test_account["id"], test_account["password"])
+
+        result = product_page.click_login_button(test_account["id"], test_account["password"])
+
+        assert result is None, "로그인 실패"
+
     # logout() 테스트
     @pytest.mark.login
     def test_logout_from_product_page(self, page, test_account):
@@ -181,3 +217,20 @@ class TestProductPageNavigation:
 
         assert returned_homepage is not None, "로그아웃 실패"
         assert isinstance(returned_homepage, HomePage), "HomePage 객체가 반환되지 않았습니다"
+
+    # logout() 테스트(로그아웃 상태에서)
+    @pytest.mark.login
+    def test_logout_from_logout_product_page(self, page):
+        homepage = HomePage(page)
+        homepage.visit()
+        homepage.should_be_on_homepage()
+
+        search_page = homepage.search_product("향수")
+        search_page.should_be_on_search_page()
+
+        product_page = search_page.click_product_by_index(1)
+        product_page.should_be_on_product_page()
+
+        returned_productpage = product_page.logout()
+
+        assert not returned_productpage, "로그아웃 성공"

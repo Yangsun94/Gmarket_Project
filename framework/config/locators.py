@@ -39,7 +39,7 @@ class SearchPageLocators:
     PRODUCT_CARDS = ".box__component.box__component-itemcard.box__component-itemcard--general"
     PRODUCT_TITLE = "span.text__item"
     PRODUCT_PRICE = "strong.text.text__value"
-    PRODUCT_IMAGE = "img.image__item"
+    PRODUCT_IMAGE = ".box__image > a"
 
     # 필터 및 정렬
     SORT_OPTIONS = ".button__toggle-sort"
